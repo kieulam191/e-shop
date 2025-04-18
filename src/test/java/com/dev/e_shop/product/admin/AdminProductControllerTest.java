@@ -1,6 +1,7 @@
-package com.dev.e_shop.product;
+package com.dev.e_shop.product.admin;
 
 import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.product.ProductRepository;
 import com.dev.e_shop.product.dto.CreateProductRequest;
 import com.dev.e_shop.product.dto.ProductResponse;
 import com.dev.e_shop.product.dto.UpdateProductRequest;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AdminProductControllerTest {
 
     @MockitoBean
-    ProductService productService;
+    AdminProductService productService;
 
     @Autowired
     MockMvc mockMvc;

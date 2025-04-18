@@ -1,7 +1,9 @@
-package com.dev.e_shop.product;
+package com.dev.e_shop.product.Publics;
 
 import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.dto.ProductResponse;
+import com.dev.e_shop.product.publics.PublicProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,21 +23,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
-class UserProductControllerTest {
+class PublicProductControllerTest {
 
     @Autowired
     MockMvc mockMvc;
 
     @MockitoBean
-    ProductService productService;
+    PublicProductService productService;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -97,7 +99,7 @@ class UserProductControllerTest {
     }
 
     @Test
-    void getProductsByPagination_Success_ShouldReturnProductsByPagination() throws Exception {
+    void getProductsByPagination_LimitSize_ShouldReturnProductsLimitSize() throws Exception {
         //given
         int page = 0, size = 1;
 
@@ -124,7 +126,7 @@ class UserProductControllerTest {
     }
 
     @Test
-    void getProductsBySearching_Success_ShouldReturnProductsByPagination() throws Exception {
+    void getProductsBySearching_LimitSize_ShouldReturnProductsLimitSize() throws Exception {
         //given
         int page = 0, size = 1;
 
@@ -138,10 +140,10 @@ class UserProductControllerTest {
         data.put("products", productResponses);
         data.put("pagination", infoPage);
 
-        given(this.productService.getProductContainByName(any(String.class))).willReturn(data);
+        given(this.productService.getProductContainByName(any(String.class), eq(page), eq(size))).willReturn(data);
 
         //when and then
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/api/public/products/test/search")
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/api/public/products/search")
                         .param("name", "iphone")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(200))
@@ -174,50 +176,6 @@ class UserProductControllerTest {
 
         //when and then
         this.mockMvc.perform(MockMvcRequestBuilders.get("/api/public/products/1")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").value("Resource not found"))
-                .andExpect(jsonPath("$.data").isEmpty());
-    }
-
-    @Test
-    void getProductByName_searchWithName_ShouldReturnProduct() throws Exception {
-        //given
-        given(this.productService.getProductByName(any(String.class))).willReturn(productResponse1);
-
-        //when and then
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/api/public/products/search")
-                        .param("name", "iphone 15")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.status").value(200))
-                .andExpect(jsonPath("$.message").value("Get product success"))
-                .andExpect(jsonPath("$.data.id").value(productResponse1.id()))
-                .andExpect(jsonPath("$.data.name").value(productResponse1.name()));
-    }
-
-    @Test
-    void getProductByName_searchWithoutCaseSensitiveName_ShouldReturnProduct() throws Exception {
-        //given
-        given(this.productService.getProductByName(any(String.class))).willReturn(productResponse1);
-
-        //when and then
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/api/public/products/search")
-                        .param("name", "IPHONE 15")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.status").value(200))
-                .andExpect(jsonPath("$.message").value("Get product success"))
-                .andExpect(jsonPath("$.data.id").value(productResponse1.id()))
-                .andExpect(jsonPath("$.data.name").value(productResponse1.name()));
-    }
-
-    @Test
-    void getProductByName_NotFoundName_ThrowNotFoundException() throws Exception {
-        //given
-        given(this.productService.getProductByName(any(String.class))).willThrow(new NotFoundException("Resource not found"));
-
-        //when and then
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/api/public/products/search")
-                        .param("name", "iphone 15")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Resource not found"))
