@@ -1,7 +1,6 @@
-package com.dev.e_shop.product;
+package com.dev.e_shop.product.publics;
 
 import com.dev.e_shop.dto.ApiResponse;
-import com.dev.e_shop.dto.PaginationResponse;
 import com.dev.e_shop.product.dto.ProductResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,10 +9,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/public/products")
-public class UserProductController {
-    private final ProductService productService;
+public class PublicProductController {
+    private final PublicProductService productService;
 
-    public UserProductController(ProductService productService) {
+    public PublicProductController(PublicProductService productService) {
         this.productService = productService;
     }
 
@@ -34,19 +33,11 @@ public class UserProductController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<ProductResponse>> getProductByName(@RequestParam String name) {
-        ProductResponse product = productService.getProductByName(name);
-
-        return ResponseEntity.status(200)
-                .body(new ApiResponse<>(
-                        200,
-                        "Get product success",
-                        product
-                ));
-    }
-    @GetMapping("/test/search")
-    public ResponseEntity<ApiResponse<Map<String, Object>>>  getProductContainByName(@RequestParam String name) {
-        Map<String, Object> product = productService.getProductContainByName(name);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getProductByName(
+            @RequestParam String name,
+            @RequestParam(defaultValue = "0", required = false) int page,
+            @RequestParam(defaultValue = "1", required = false) int size ) {
+        Map<String, Object> product = productService.getProductContainByName(name, page, size);
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse<>(
@@ -69,6 +60,4 @@ public class UserProductController {
                         product
                 ));
     }
-
-
 }

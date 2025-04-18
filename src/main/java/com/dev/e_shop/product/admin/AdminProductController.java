@@ -1,6 +1,7 @@
-package com.dev.e_shop.product;
+package com.dev.e_shop.product.admin;
 
 import com.dev.e_shop.dto.ApiResponse;
+import com.dev.e_shop.product.ProductRepository;
 import com.dev.e_shop.product.dto.CreateProductRequest;
 import com.dev.e_shop.product.dto.ProductResponse;
 import com.dev.e_shop.product.dto.UpdateProductRequest;
@@ -12,9 +13,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/products")
 public class AdminProductController {
-    private final ProductService productService;
+    private final AdminProductService productService;
 
-    public AdminProductController(ProductService productService) {
+    public AdminProductController(AdminProductService productService) {
         this.productService = productService;
     }
 
@@ -58,7 +59,7 @@ public class AdminProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProductResponse>> remove(
+    public ResponseEntity<Void> remove(
             @PathVariable int id) {
         productService.remove(id);
 
