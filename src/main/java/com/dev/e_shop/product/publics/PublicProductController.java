@@ -1,6 +1,7 @@
 package com.dev.e_shop.product.publics;
 
 import com.dev.e_shop.dto.ApiResponse;
+import com.dev.e_shop.product.dto.ProductPreviewResponse;
 import com.dev.e_shop.product.dto.ProductResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,7 +52,7 @@ public class PublicProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> getProductById(@PathVariable long id) {
-        ProductResponse product = productService.getById(id);
+        ProductResponse product = productService.getProductDetailById(id);
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse<>(

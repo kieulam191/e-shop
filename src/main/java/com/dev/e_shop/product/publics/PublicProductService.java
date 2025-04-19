@@ -4,6 +4,7 @@ import com.dev.e_shop.dto.PaginationResponse;
 import com.dev.e_shop.exception.NotFoundException;
 import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
+import com.dev.e_shop.product.dto.ProductPreviewResponse;
 import com.dev.e_shop.product.dto.ProductResponse;
 import com.dev.e_shop.product.mapper.ProductMapper;
 import org.springframework.data.domain.Page;
@@ -35,19 +36,13 @@ public class PublicProductService {
         return createDataByPagination(productPage);
     }
 
-    public ProductResponse getById(long id) {
+    public ProductResponse getProductDetailById(long id) {
         Product product = this.productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Resource not found"));
 
         return productMapper.toProductResponse(product);
     }
 
-    public ProductResponse getProductByName(String name) {
-        Product product = this.productRepository.findByNameIgnoreCase(name)
-                .orElseThrow(() -> new NotFoundException("Resource not found"));
-
-        return productMapper.toProductResponse(product);
-    }
 
     public Map<String, Object> getProductContainByName(String name, int page, int size) {
         Page<Product> productPage = this.productRepository.findByNameContainingIgnoreCase(name, PageRequest.of(page, size));
