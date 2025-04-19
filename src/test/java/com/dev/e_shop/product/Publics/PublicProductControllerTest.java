@@ -2,6 +2,7 @@ package com.dev.e_shop.product.Publics;
 
 import com.dev.e_shop.exception.NotFoundException;
 import com.dev.e_shop.product.Product;
+import com.dev.e_shop.product.dto.ProductPreviewResponse;
 import com.dev.e_shop.product.dto.ProductResponse;
 import com.dev.e_shop.product.publics.PublicProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +47,7 @@ class PublicProductControllerTest {
     private List<Product> products;
     private List<ProductResponse> productResponses;
     private ProductResponse productResponse1, productResponse2;
+    private ProductPreviewResponse productPreviewResponse1, productPreviewResponse2;
 
     @BeforeEach
     void setUp() {
@@ -83,8 +85,8 @@ class PublicProductControllerTest {
         );
 
         productResponse2 = new ProductResponse(
-                1,
-                "Iphone 16",
+                2,
+                "Iphone 16 pro",
                 new BigDecimal("300.0"),
                 "A new phone is...",
                 1,
@@ -92,6 +94,17 @@ class PublicProductControllerTest {
                 "/#"
         );
 
+        productPreviewResponse1 = new ProductPreviewResponse(
+                1,
+                "Iphone 16",
+                new BigDecimal("300.0")
+        );
+
+        productPreviewResponse2 = new ProductPreviewResponse(
+                2,
+                "Iphone 16",
+                new BigDecimal("300.0")
+        );
 
         productResponses = new ArrayList<>();
         productResponses.add(productResponse1);
@@ -99,7 +112,7 @@ class PublicProductControllerTest {
     }
 
     @Test
-    void getProductsByPagination_LimitSize_ShouldReturnProductsLimitSize() throws Exception {
+    void getProductsByPagination_withLimit2_returnsProductPreviewResponse() throws Exception {
         //given
         int page = 0, size = 1;
 
@@ -126,7 +139,7 @@ class PublicProductControllerTest {
     }
 
     @Test
-    void getProductsBySearching_LimitSize_ShouldReturnProductsLimitSize() throws Exception {
+    void getProductsBySearching_withValidName_returnsProductPreviewResponse() throws Exception {
         //given
         int page = 0, size = 1;
 
@@ -137,10 +150,11 @@ class PublicProductControllerTest {
         infoPage.put("pageSize", 1);
 
         Map<String, Object> data = new HashMap<>();
-        data.put("products", productResponses);
+        data.put("products", List.of(productPreviewResponse1, productPreviewResponse2));
         data.put("pagination", infoPage);
 
-        given(this.productService.getProductContainByName(any(String.class), eq(page), eq(size))).willReturn(data);
+        given(this.productService.getProductContainByName(any(String.class), eq(page), eq(size)))
+                .willReturn(data);
 
         //when and then
         this.mockMvc.perform(MockMvcRequestBuilders.get("/api/public/products/search")
@@ -154,10 +168,10 @@ class PublicProductControllerTest {
     }
 
     @Test
-    void getProductById_ExistingId_ShouldReturnConcreteProduct() throws Exception {
+    void getProductById_withExistingId_returnsConcreteProduct() throws Exception {
         //given
 
-        given(this.productService.getById(1L)).willReturn(productResponse1);
+        given(this.productService.getProductDetailById(1L)).willReturn(productResponse1);
 
 
         //when and then
@@ -170,15 +184,15 @@ class PublicProductControllerTest {
     }
 
     @Test
-    void getProductById_NotFoundId_ThrowNotFoundException() throws Exception {
+    void getProductById_withNotFoundId_throwsNotFoundException() throws Exception {
         //given
-        given(this.productService.getById(1L)).willThrow(new NotFoundException("Resource not found"));
+        given(this.productService.getProductDetailById(1L)).willThrow(new NotFoundException("Product with ID 1 not found"));
 
         //when and then
         this.mockMvc.perform(MockMvcRequestBuilders.get("/api/public/products/1")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Resource not found"))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.errors[0]").value("Product with ID 1 not found"));
     }
 }

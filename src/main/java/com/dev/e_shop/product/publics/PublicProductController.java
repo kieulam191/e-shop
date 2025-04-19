@@ -1,7 +1,6 @@
 package com.dev.e_shop.product.publics;
 
 import com.dev.e_shop.dto.ApiResponse;
-import com.dev.e_shop.product.dto.ProductPreviewResponse;
 import com.dev.e_shop.product.dto.ProductResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

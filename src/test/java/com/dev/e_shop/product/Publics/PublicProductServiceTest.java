@@ -4,6 +4,7 @@ import com.dev.e_shop.dto.PaginationResponse;
 import com.dev.e_shop.exception.NotFoundException;
 import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
+import com.dev.e_shop.product.dto.ProductPreviewResponse;
 import com.dev.e_shop.product.dto.ProductResponse;
 import com.dev.e_shop.product.mapper.ProductMapper;
 import com.dev.e_shop.product.publics.PublicProductService;
@@ -42,7 +43,7 @@ class PublicProductServiceTest {
     ProductMapper productMapper;
 
     @Test
-    void getProductByPagination_Limit2Product_ShouldReturn2Products() {
+    void getProductByPagination_withLimit2_returns2Products() {
         // Given
         int page = 0;
         int size = 2;
@@ -87,7 +88,7 @@ class PublicProductServiceTest {
     }
 
     @Test
-    void getById_ExistingId_ShouldReturnConcreteProduct() {
+    void getProductDetailById_withExistingId_returnsProductResponse() {
         // Given
         Product product1 = Product.builder()
                 .name("I phone 16")
@@ -110,7 +111,7 @@ class PublicProductServiceTest {
         given(productMapper.toProductResponse(any(Product.class))).willReturn(response);
 
         // When
-        ProductResponse actual = productService.getById(1L);
+        ProductResponse actual = productService.getProductDetailById(1L);
 
         // Then
         assertThat(actual.id()).isEqualTo(response.id());
@@ -121,13 +122,13 @@ class PublicProductServiceTest {
     }
 
     @Test
-    void getById_NotFoundId_ThrowNotFoundException() {
+    void getProductDetailById_withNotFoundId_throwsNotFoundException() {
         // Given
         given(productRepository.findById(1L)).willReturn(Optional.empty());
 
         // When
         assertThrows(NotFoundException.class, () -> {
-            productService.getById(1L);
+            productService.getProductDetailById(1L);
         });
 
         // Then
@@ -135,56 +136,7 @@ class PublicProductServiceTest {
     }
 
     @Test
-    void testGetProductByName_ExistingName_ShouldReturnProduct() {
-        //given
-        String name = "iphone 15";
-        Product product1 = Product.builder()
-                .name("I phone 16")
-                .price(BigDecimal.valueOf(500))
-                .description("A new product")
-                .brand("Apple")
-                .imgUrl("/#")
-                .build();
-        ProductResponse response = new ProductResponse(
-                1,
-                "Iphone 16",
-                new BigDecimal("300.0"),
-                "A new phone is...",
-                1,
-                "Apple",
-                "/#"
-        );
-        given(productRepository.findByNameIgnoreCase(name)).willReturn(Optional.of(product1));
-        given(productMapper.toProductResponse(any(Product.class))).willReturn(response);
-        //when
-
-        var actual = productService.getProductByName(name);
-
-        //then
-        assertThat(actual.name()).isEqualTo(response.name());
-
-        verify(productRepository, times(1)).findByNameIgnoreCase(name);
-        verify(productMapper, times(1)).toProductResponse(product1);
-    }
-
-    @Test
-    void productByName_NotFoundName_ThrowNotFoundException() {
-        //given
-        String name = "iphone 15";
-
-        given(productRepository.findByNameIgnoreCase(name)).willReturn(Optional.empty());
-
-        //when
-        assertThrows(NotFoundException.class,() -> {
-            var actual = productService.getProductByName(name);
-        });
-
-        //then
-        verify(productRepository, times(1)).findByNameIgnoreCase(name);
-    }
-
-    @Test
-    void getProductContainByName_Success_ShouldReturnProduct() {
+    void getProductContainByName_withExistingKeyword_returnMatchingProducts() {
         //given
         String name = "Iphone";
         int page = 0;

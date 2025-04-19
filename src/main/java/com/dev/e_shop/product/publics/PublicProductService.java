@@ -4,7 +4,6 @@ import com.dev.e_shop.dto.PaginationResponse;
 import com.dev.e_shop.exception.NotFoundException;
 import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
-import com.dev.e_shop.product.dto.ProductPreviewResponse;
 import com.dev.e_shop.product.dto.ProductResponse;
 import com.dev.e_shop.product.mapper.ProductMapper;
 import org.springframework.data.domain.Page;
