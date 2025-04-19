@@ -11,10 +11,10 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class UpdateProductRequest {
-    @NotBlank(message = "name cannot be empty")
+    @Pattern(regexp = "^(?!\\s*$)[\\p{L}\\p{N} .,'\\-()]{1,255}$", message = "Name must to has at least one and do not contain special characters")
     private String name;
 
-    @DecimalMin(value = "100", message = "Price must be greater than 100")
+    @DecimalMin(value = "0", inclusive = false, message = "Price must be greater than 0")
     private BigDecimal price;
 
     @Size(max = 500, message = "Description must be at most 500 characters")

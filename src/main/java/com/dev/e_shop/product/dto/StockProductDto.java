@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class StockProductDto {
-    @Min(value = 1, message = "stock must be greater than 0")
+    @Min(value = 1, message = "Stock must be greater than 0")
     private int stock;
 }

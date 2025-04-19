@@ -36,13 +36,13 @@ public class AdminProductService {
                     if(body.getBrand() != null) product.setBrand(body.getBrand());
                     if(body.getDescription() != null) product.setDescription(body.getDescription());
                     if(body.getPrice() != null) product.setPrice(body.getPrice());
-                    if(body.getCategoryId() != 0) product.setCategoryId(body.getCategoryId());
+                    if(body.getCategoryId() > 0) product.setCategoryId(body.getCategoryId());
                     if(body.getImgUrl() != null) product.setImgUrl(body.getImgUrl());
 
                     Product updatedProduct = productRepository.save(product);
                     return productMapper.toProductResponse(updatedProduct);
                 })
-                .orElseThrow(() -> new NotFoundException("Resource not found"));
+                .orElseThrow(() -> createNotFoundException(id));
     }
 
     public StockProductDto updateStockById(long id, StockProductDto body) {
@@ -53,7 +53,7 @@ public class AdminProductService {
 
                     return new StockProductDto(updatedProduct.getStock());
                 })
-                .orElseThrow(() -> new NotFoundException("Resource not found"));
+                .orElseThrow(() -> createNotFoundException(id));
     }
 
     public void remove(long id) {
@@ -64,11 +64,15 @@ public class AdminProductService {
                     productRepository.save(product);
                     return product;
                 })
-                .orElseThrow(() -> new NotFoundException("Resource not found"));
+                .orElseThrow(() -> createNotFoundException(id));
     }
 
     public ProductRepository.StockView getStockInfo(long id) {
         return productRepository.findStockViewById(id)
-                .orElseThrow(() -> new NotFoundException("Resource not found"));
+                .orElseThrow(() -> createNotFoundException(id));
+    }
+
+    private NotFoundException createNotFoundException(long id) {
+        return new NotFoundException(String.format("Product with ID %d not found", id));
     }
 }

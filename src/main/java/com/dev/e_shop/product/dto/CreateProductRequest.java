@@ -29,6 +29,7 @@ public class CreateProductRequest {
     @NotNull(message = "Category ID is required")
     private int categoryId;
 
+    @NotBlank
     @Size(min = 1, message = "Brand cannot be empty")
     private String brand;
 
