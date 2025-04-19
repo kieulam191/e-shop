@@ -45,7 +45,7 @@ class AdminProductServiceTest {
     }
 
     @Test
-    void create_ValidInput_ShouldCreatingProduct() {
+    void create_withValidInput_returnsProductResponse() {
         //given
         CreateProductRequest body = new CreateProductRequest(
                 "Iphone 16",
@@ -102,7 +102,7 @@ class AdminProductServiceTest {
     }
 
     @Test
-    void update_ValidInput_ShouldUpdatingProduct() {
+    void updateProductInfo_withExistingId_returnsProductResponse() {
         UpdateProductRequest body = UpdateProductRequest.builder()
                 .name("Iphone 16 pro")
                 .price(new BigDecimal(500.0))
@@ -153,11 +153,9 @@ class AdminProductServiceTest {
     }
 
     @Test
-    void update_NotFoundId_ThrowNotFoundException() {
+    void updateProductInfo_withNotFoundId_throwsNotFoundException() {
         //given
         UpdateProductRequest body = UpdateProductRequest.builder()
-                .name("Iphone 16 pro")
-                .price(new BigDecimal(500.0))
                 .build();
 
 
@@ -173,7 +171,7 @@ class AdminProductServiceTest {
     }
 
     @Test
-    void updateStockById_ValidInput_ShouldUpdateStock() {
+    void updateStockById_withExistingId_returnsProductResponse() {
         //given
         StockProductDto body = new StockProductDto(10);
         body.setStock(100);
@@ -208,7 +206,7 @@ class AdminProductServiceTest {
     }
 
     @Test
-    void remove_ExistingId_ShouldChangeProductStatus() {
+    void remove_withExistingId_setsDeletedFlagToTrue() {
         //given
         Product product = Product.builder()
                 .isDeleted(false)
@@ -228,7 +226,7 @@ class AdminProductServiceTest {
     }
 
     @Test
-    void remove_NotFoundId_ThrowNotFoundException() {
+    void remove_withNotFoundId_doesNothing() {
         //given
         Product product = Product.builder()
                 .isDeleted(false)
@@ -249,7 +247,7 @@ class AdminProductServiceTest {
     }
 
     @Test
-    void getStockInfo_ExistingId_ShouldReturnStockInfo() {
+    void getStockInfo_withExistingId_returnsStockProductDto() {
         //given
         given(this.productRepository.findStockViewById(1L))
                 .willReturn(Optional.of(new ProductRepository.StockView() {
@@ -279,7 +277,7 @@ class AdminProductServiceTest {
     }
 
     @Test
-    void getStockInfo_NotFoundId_ThrowNotFoundException() {
+    void getStockInfo_withNotFoundId_throwsNotFoundException() {
         //given
         given(this.productRepository.findStockViewById(1L))
                 .willReturn(Optional.empty());

@@ -7,6 +7,8 @@ import com.dev.e_shop.product.dto.ProductResponse;
 import com.dev.e_shop.product.dto.UpdateProductRequest;
 import com.dev.e_shop.product.dto.StockProductDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -41,8 +43,14 @@ class AdminProductControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
+    NotFoundException notFoundException;
+    @BeforeEach
+    void setUp() {
+        notFoundException = new NotFoundException("Product with ID 1 not found");
+    }
+
     @Test
-    void create_ValidInput_ShouldReturnResponse() throws Exception {
+    void create_withValidInput_returnsCreatedResponse() throws Exception {
        //given
         CreateProductRequest body = new CreateProductRequest(
                 "Iphone 16",
@@ -78,7 +86,7 @@ class AdminProductControllerTest {
     }
 
     @Test
-    void create_EmptyName_ThrowBadRequestException() throws Exception {
+    void create_withEmptyName_throwsBadRequestException() throws Exception {
         //given
         CreateProductRequest body = new CreateProductRequest(
                 "",
@@ -99,12 +107,42 @@ class AdminProductControllerTest {
                         .content(json)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("name: name cannot be empty"))
-                .andExpect(jsonPath("$.data").value("/api/admin/products/"));
+                .andExpect(jsonPath("$.message").value("Validation failed for one or more fields."))
+                .andExpect(jsonPath("$.errors.size()", Matchers.equalTo(1)))
+                .andExpect(jsonPath("$.errors.name").value("name cannot be empty"))
+                .andExpect(jsonPath("$.path").value("/api/admin/products/"));
     }
 
     @Test
-    void updateProduct_ValidInput_ShouldReturnResponse() throws Exception {
+    void create_withEmptyNameAndPriceBelow1_throwsBadRequestException() throws Exception {
+        //given
+        CreateProductRequest body = new CreateProductRequest(
+                "",
+                new BigDecimal("0"),
+                "A new phone is...",
+                1,
+                "Apple",
+                "/#"
+        );
+
+        String json = objectMapper.writeValueAsString(body);
+
+        given(this.productService.create(any(CreateProductRequest.class))).willThrow(DataIntegrityViolationException.class);
+        //when and then
+        this.mockMvc.perform(post("/api/admin/products/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Validation failed for one or more fields."))
+                .andExpect(jsonPath("$.errors.size()", Matchers.equalTo(2)))
+                .andExpect(jsonPath("$.errors.name").value("name cannot be empty"))
+                .andExpect(jsonPath("$.errors.price").value("Price must be greater than 100"))
+                .andExpect(jsonPath("$.path").value("/api/admin/products/"));
+    }
+
+    @Test
+    void updateProduct_withValidInput_returnsUpdatedResponse() throws Exception {
         UpdateProductRequest body = UpdateProductRequest.builder()
                 .name("Iphone 16 pro")
                 .price(new BigDecimal(500.0))
@@ -136,16 +174,14 @@ class AdminProductControllerTest {
     }
 
     @Test
-    void updateProduct_NotFoundId_ThrowNotFoundException() throws Exception {
+    void updateProduct_withNotFoundId_throwsNotFoundException() throws Exception {
         UpdateProductRequest body = UpdateProductRequest.builder()
-                .name("Iphone 16 pro")
-                .price(new BigDecimal(500.0))
                 .build();
 
         String json = objectMapper.writeValueAsString(body);
 
         given(this.productService.updateProduct(eq(1L), any(UpdateProductRequest.class)))
-                .willThrow(new NotFoundException("Resource not found"));
+                .willThrow(notFoundException);
         //when and then
         this.mockMvc.perform(patch("/api/admin/products/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -153,11 +189,11 @@ class AdminProductControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Resource not found"))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.errors[0]").value("Product with ID 1 not found"));
     }
 
     @Test
-    void updateProduct_EmptyName_ThrowBadRequestException() throws Exception {
+    void updateProduct_withEmptyName_throwsBadRequestException() throws Exception {
         UpdateProductRequest body = UpdateProductRequest.builder()
                 .name("")
                 .price(new BigDecimal(500.0))
@@ -172,13 +208,38 @@ class AdminProductControllerTest {
                         .content(json)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("name: name cannot be empty"))
-                .andExpect(jsonPath("$.data").value("/api/admin/products/1"));
+                .andExpect(jsonPath("$.message").value("Validation failed for one or more fields."))
+                .andExpect(jsonPath("$.errors.size()", Matchers.equalTo(1)))
+                .andExpect(jsonPath("errors.name").value("Name must to has at least one and do not contain special characters"))
+                .andExpect(jsonPath("$.path").value("/api/admin/products/1"));
 
     }
 
     @Test
-    void updateStock_ValidStock_ShouldReturnResponse() throws Exception {
+    void updateProduct_withEmptyNameAndPriceBelow100_throwsBadRequestException() throws Exception {
+        UpdateProductRequest body = UpdateProductRequest.builder()
+                .name("")
+                .price(new BigDecimal(0))
+                .build();
+
+        String json = objectMapper.writeValueAsString(body);
+
+        given(this.productService.updateProduct(eq(1L), any(UpdateProductRequest.class))).willThrow(DataIntegrityViolationException.class);
+        //when and then
+        this.mockMvc.perform(patch("/api/admin/products/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Validation failed for one or more fields."))
+                .andExpect(jsonPath("$.errors.size()", Matchers.equalTo(2)))
+                .andExpect(jsonPath("$.errors.name").value("Name must to has at least one and do not contain special characters"))
+                .andExpect(jsonPath("$.path").value("/api/admin/products/1"));
+
+    }
+
+    @Test
+    void updateStock_withValidPositiveStock_returnsUpdatedStockResponse() throws Exception {
         StockProductDto body = new StockProductDto(10);
 
         StockProductDto response = new StockProductDto(60);
@@ -199,7 +260,49 @@ class AdminProductControllerTest {
     }
 
     @Test
-    void remove_ExistingId_ShouldReturnResponse() throws Exception {
+    void updateStock_withNegativeStock_returnsBadRequestException() throws Exception {
+        StockProductDto body = new StockProductDto(0);
+
+        StockProductDto response = new StockProductDto(60);
+
+        String json = objectMapper.writeValueAsString(body);
+
+        given(this.productService.updateStockById(eq(1L), any(StockProductDto.class)))
+                .willReturn(response);
+        //when and then
+        this.mockMvc.perform(patch("/api/admin/products/1/stock")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Validation failed for one or more fields."))
+                .andExpect(jsonPath("$.errors.size()", Matchers.equalTo(1)))
+                .andExpect(jsonPath("$.errors.stock").value("Stock must be greater than 0"))
+                .andExpect(jsonPath("$.path").value("/api/admin/products/1/stock"));
+
+    }
+
+    @Test
+    void updateStock_withNotFoundId_returnsNotFoundException() throws Exception {
+        StockProductDto body = new StockProductDto(10);
+
+        String json = objectMapper.writeValueAsString(body);
+
+        given(this.productService.updateStockById(eq(1L), any(StockProductDto.class)))
+                .willThrow(notFoundException);
+        //when and then
+        this.mockMvc.perform(patch("/api/admin/products/1/stock")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Resource not found"))
+                .andExpect(jsonPath("$.errors[0]").value("Product with ID 1 not found"));
+
+    }
+
+    @Test
+    void remove_withExistingId_returns204NoContent() throws Exception {
         //given
         doNothing().when(productService).remove(1L);
 
@@ -210,20 +313,20 @@ class AdminProductControllerTest {
     }
 
     @Test
-    void remove_NotFoundId_ThrowNotFoundException() throws Exception {
+    void remove_withNotFoundId_throwsNotFoundException() throws Exception {
         //given
-        doThrow(new NotFoundException("Resource not found")).when(productService).remove(1L);
+        doThrow(notFoundException).when(productService).remove(1L);
 
         //when and then
         this.mockMvc.perform(delete("/api/admin/products/1")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Resource not found"))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.errors[0]").value("Product with ID 1 not found"));
     }
 
     @Test
-    void getStockInfo_ExistingId_ShouldReturnResponse() throws Exception {
+    void getStockInfo_withExistingId_returnsStockResponse() throws Exception {
         given(this.productService.getStockInfo(1L)).willReturn(new ProductRepository.StockView() {
             @Override
             public Long getId() {
@@ -251,13 +354,13 @@ class AdminProductControllerTest {
     }
 
     @Test
-    void getStockInfo_NotFoundId_ThrowNotFoundException() throws Exception {
-        given(this.productService.getStockInfo(1L)).willThrow(new NotFoundException("Resource not found"));
+    void getStockInfo_withNotFoundId_throwsNotFoundException() throws Exception {
+        given(this.productService.getStockInfo(1L)).willThrow(notFoundException);
         //when and then
         this.mockMvc.perform(get("/api/admin/products/1/stock")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Resource not found"))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.errors[0]").value("Product with ID 1 not found"));
     }
 }
