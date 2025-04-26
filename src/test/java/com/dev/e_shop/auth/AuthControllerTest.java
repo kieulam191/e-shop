@@ -76,7 +76,7 @@ class AuthControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.message").value("Bad credentials"))
-                .andExpect(jsonPath("$.errors[0]").value("Wrong username of password"))
+                .andExpect(jsonPath("$.errors[0]").value("Wrong email or password"))
                 .andExpect(jsonPath("$.path").value("/api/auth/login"));
     }
 
