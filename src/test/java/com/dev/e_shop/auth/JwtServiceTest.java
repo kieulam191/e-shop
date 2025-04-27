@@ -68,7 +68,7 @@ class JwtServiceTest {
         Claims claims = jwtService.extractClaims(token);
 
         assertEquals("test@gmail.com", claims.getSubject());
-        assertEquals("USER", claims.get("role", String.class));
+        assertEquals("ROLE_USER", claims.get("role", String.class));
         assertEquals(Instant.parse("2025-04-25T04:00:00Z"), claims.getIssuedAt().toInstant());
         assertEquals(Instant.parse("2025-04-25T05:00:00Z"), claims.getExpiration().toInstant());
 
