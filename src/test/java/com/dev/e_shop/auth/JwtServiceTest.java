@@ -4,6 +4,10 @@ import com.dev.e_shop.user.User;
 import com.dev.e_shop.user.UserDetail;
 import com.dev.e_shop.user.role.Roles;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,14 +16,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.Properties;
+import java.time.temporal.ChronoField;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 
@@ -32,6 +41,8 @@ class JwtServiceTest {
 
     private final Instant fixedNow = Instant.parse("2025-04-25T04:00:00Z");
 
+    String fakeSecretKey;
+
     @BeforeEach
     void setUp() {
         Properties properties = new Properties();
@@ -41,7 +52,7 @@ class JwtServiceTest {
             throw new RuntimeException(e);
         }
 
-        String fakeSecretKey = properties.getProperty("jwt.secret");
+        fakeSecretKey = properties.getProperty("jwt.secret");
 
         when(clock.instant()).thenReturn(fixedNow);
         lenient().when(clock.getZone()).thenReturn(ZoneOffset.UTC);
@@ -97,5 +108,31 @@ class JwtServiceTest {
         assertThrows(SignatureException.class, () -> {
             jwtService.extractClaims(changedToken);
         });
+    }
+
+    @Test
+    void extractClaims_withValidClaims_returnsClaimInfo() {
+        //given
+        byte[] keyBytes = Base64.getDecoder().decode(fakeSecretKey);
+        SecretKey secretKey1 = Keys.hmacShaKeyFor(keyBytes);
+
+        long issuedAtMillis = 1745870400000L;
+        long expirationMillis = 1745874000000L;
+
+        String token = Jwts.builder()
+                .subject("test@gmail.com")
+                .claim("role", Roles.USER.name())
+                .issuedAt(new Date(issuedAtMillis))
+                .expiration(new Date(expirationMillis))
+                .signWith(secretKey1)
+                .compact();
+        //when
+        Claims actual = this.jwtService.extractClaims(token);
+        //then
+        assertNotNull(actual);
+        assertEquals("test@gmail.com", actual.getSubject());
+        assertEquals(Roles.USER.name(), actual.get("role"));
+        assertEquals(issuedAtMillis, actual.getIssuedAt().getTime());
+        assertEquals(expirationMillis, actual.getExpiration().getTime());
     }
 }
