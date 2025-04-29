@@ -4,12 +4,14 @@ import com.dev.e_shop.cart.dto.AddItemRequest;
 import com.dev.e_shop.cart.dto.CartResponse;
 import com.dev.e_shop.cart.dto.UpdateItemRequest;
 import com.dev.e_shop.dto.ApiResponse;
+import com.dev.e_shop.user.UserDetail;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/users/cart")
+@RequestMapping("/api/user/cart")
 public class UserCartController {
     private final UserCartService userCartService;
 
@@ -18,8 +20,8 @@ public class UserCartController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse> getCartByUserId(@RequestParam("user-id") long userId) {
-       CartResponse response = userCartService.getCartByUserId(userId);
+    public ResponseEntity<ApiResponse> getCartByUserId(@AuthenticationPrincipal UserDetail userDetail) {
+       CartResponse response = userCartService.getCartByUserId(userDetail.getId());
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse(
@@ -29,9 +31,11 @@ public class UserCartController {
                 ));
     }
 
-    @PostMapping("/")
-    public ResponseEntity<ApiResponse> addCartItem(@Valid @RequestBody AddItemRequest body) {
-        userCartService.addCartItem(body);
+    @PostMapping("/me")
+    public ResponseEntity<ApiResponse> addCartItem(
+            @AuthenticationPrincipal UserDetail userDetail,
+            @Valid @RequestBody AddItemRequest body) {
+        userCartService.addCartItem(body, userDetail);
 
         return ResponseEntity.status(201)
                 .body(new ApiResponse(
@@ -41,9 +45,11 @@ public class UserCartController {
                 ));
     }
 
-    @PatchMapping("/")
-    public ResponseEntity<ApiResponse> updateCartItem(@Valid @RequestBody UpdateItemRequest body) {
-        userCartService.updateQuantityOfItem(body);
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse> updateCartItem(
+            @AuthenticationPrincipal UserDetail userDetail,
+            @Valid @RequestBody UpdateItemRequest body) {
+        userCartService.updateQuantityOfItem(body, userDetail);
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse(
@@ -54,8 +60,10 @@ public class UserCartController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> removeCartItem(@PathVariable long id) {
-        userCartService.removeCartItem(id);
+    public ResponseEntity<ApiResponse> removeCartItem(
+            @AuthenticationPrincipal UserDetail userDetail,
+            @PathVariable long id) {
+        userCartService.removeCartItem(id, userDetail);
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse(

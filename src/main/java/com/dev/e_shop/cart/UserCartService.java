@@ -6,6 +6,7 @@ import com.dev.e_shop.cart.dto.CartResponse;
 import com.dev.e_shop.cart.dto.UpdateItemRequest;
 import com.dev.e_shop.exception.NotFoundException;
 import com.dev.e_shop.product.ProductRepository;
+import com.dev.e_shop.user.UserDetail;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,11 +25,12 @@ public class UserCartService {
     }
 
     @Transactional
-    public void addCartItem(AddItemRequest body) {
+    public void addCartItem(AddItemRequest body, UserDetail userDetail) {
         productRepository.findById(body.productId())
                 .orElseThrow(() -> new NotFoundException("Product with ID " + body.productId() + " not found"));
 
-        Optional<Cart> existingCartItem = userCartRepository.findByProductId(body.productId());
+        Optional<Cart> existingCartItem = userCartRepository
+                .findByProductIdAndUserId(body.productId(), userDetail.getId());
 
         if (existingCartItem.isPresent()) {
             Cart item = existingCartItem.get();
@@ -36,7 +38,7 @@ public class UserCartService {
             userCartRepository.save(item);
         } else {
             Cart newCartItem = Cart.builder()
-                    .userId(body.userId())
+                    .userId(userDetail.getId())
                     .productId(body.productId())
                     .quantity(1)
                     .build();
@@ -59,8 +61,8 @@ public class UserCartService {
     }
 
     @Transactional
-    public void updateQuantityOfItem(UpdateItemRequest body) {
-        userCartRepository.findById(body.cartItemId())
+    public void updateQuantityOfItem(UpdateItemRequest body, UserDetail userDetail) {
+        userCartRepository.findByIdAndUserId(body.cartItemId(), userDetail.getId())
                 .map(item -> {
                     item.setQuantity(body.amount());
                     return this.userCartRepository.save(item);
@@ -69,8 +71,8 @@ public class UserCartService {
     }
 
     @Transactional
-    public void removeCartItem(long id) {
-        this.userCartRepository.findById(id)
+    public void removeCartItem(long id, UserDetail userDetail) {
+        this.userCartRepository.findByIdAndUserId(id, userDetail.getId())
                 .orElseThrow(()-> createNotFoundException(id));
 
         this.userCartRepository.deleteById(id);

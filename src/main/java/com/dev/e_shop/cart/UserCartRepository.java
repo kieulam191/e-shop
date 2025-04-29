@@ -11,11 +11,13 @@ import java.util.Set;
 
 public interface UserCartRepository extends JpaRepository<Cart, Long> {
 
-    @Query("SELECT new  com.dev.e_shop.cart.dto.CartDto(id, productId, quantity) id, productId, quantity  FROM Cart WHERE userId = :userId")
+    @Query("SELECT new  com.dev.e_shop.cart.dto.CartDto(id, productId, quantity) FROM Cart WHERE userId = :userId")
     Set<CartDto> findItemsByUserid(@Param("userId") long userId);
 
     @Query("SELECT SUM(p.price * c.quantity) FROM Cart c JOIN Product p ON c.productId = p.id WHERE c.userId = :userId")
     BigDecimal calculateTotalPriceByUserId(@Param("userId") Long userId);
 
-    Optional<Cart> findByProductId(long productId);
+    Optional<Cart> findByProductIdAndUserId(long productId, long userId);
+
+    Optional<Cart> findByIdAndUserId(long id, long userId);
 }

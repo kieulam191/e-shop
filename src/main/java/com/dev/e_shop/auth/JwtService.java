@@ -1,8 +1,7 @@
 package com.dev.e_shop.auth;
 
 import com.dev.e_shop.user.UserDetail;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
@@ -52,6 +51,10 @@ public class JwtService {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    public String extractUsername(String token) {
+        return extractClaims(token).getSubject();
     }
 
     private Key getSecretKey() {

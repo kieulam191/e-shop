@@ -1,6 +1,5 @@
 package com.dev.e_shop.exception;
 
-import com.dev.e_shop.dto.ApiResponse;
 import com.dev.e_shop.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -126,6 +125,18 @@ public class GlobalExceptionHandler {
                 401,
                 "Bad credentials",
                 Arrays.asList("Wrong email or password"),
+                request.getRequestURI()
+        ));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(
+            Exception ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(500).body(new ErrorResponse(
+                500,
+                "Internal server error",
+                Arrays.asList("An unexpected error occurred"),
                 request.getRequestURI()
         ));
     }
