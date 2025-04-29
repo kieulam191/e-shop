@@ -77,7 +77,7 @@ class UserControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.message").value("Unauthorized"))
-                .andExpect(jsonPath("$.errors").value("Access denied: Please provide a valid authentication token"))
+                .andExpect(jsonPath("$.errors").value("Unauthorized access"))
                 .andExpect(jsonPath("$.path").value("/api/user/me"));
     }
 
@@ -140,7 +140,7 @@ class UserControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.message").value("Unauthorized"))
-                .andExpect(jsonPath("$.errors").value("Access denied: Please provide a valid authentication token"))
+                .andExpect(jsonPath("$.errors").value("Unauthorized access"))
                 .andExpect(jsonPath("$.path").value("/api/user/me"));
     }
 

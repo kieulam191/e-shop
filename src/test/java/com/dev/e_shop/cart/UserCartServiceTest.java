@@ -7,12 +7,19 @@ import com.dev.e_shop.cart.dto.UpdateItemRequest;
 import com.dev.e_shop.exception.NotFoundException;
 import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
+import com.dev.e_shop.user.User;
+import com.dev.e_shop.user.UserDetail;
+import com.dev.e_shop.user.profile.Profile;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -36,11 +43,22 @@ class UserCartServiceTest {
     @Mock
     ProductRepository productRepository;
 
+    UserDetail userDetail;
+
+    @BeforeEach
+    void setUp() {
+        User user = new User();
+        user.setEmail("test@gmail.com");
+        user.setId(1L);
+
+        userDetail = new UserDetail(user);
+    }
+
 
     @Test
     void addCartItem_withValidCartItem_savesCartItem() {
         // given
-        AddItemRequest body = new AddItemRequest(1L, 1L);
+        AddItemRequest body = new AddItemRequest(1L);
 
         Cart cartItem = Cart.builder()
                 .id(1L)
@@ -49,11 +67,11 @@ class UserCartServiceTest {
                 .quantity(1)
                 .build();
         given(this.productRepository.findById(1L)).willReturn(Optional.of(new Product()));
-        given(userCartRespository.findByProductId(1L)).willReturn(Optional.empty());
+        given(userCartRespository.findByProductIdAndUserId(1L, 1L)).willReturn(Optional.empty());
         given(userCartRespository.save(any(Cart.class))).willReturn(cartItem);
 
         // when
-        userCartService.addCartItem(body);
+        userCartService.addCartItem(body, userDetail);
 
         // then
         ArgumentCaptor<Cart> cartCaptor = ArgumentCaptor.forClass(Cart.class);
@@ -70,7 +88,7 @@ class UserCartServiceTest {
     @Test
     void addCartItem_withExistingCartItem_increaseQuantityBy1() {
         // given
-        AddItemRequest body = new AddItemRequest(1L, 1L);
+        AddItemRequest body = new AddItemRequest(1L);
 
         Cart existingCartItem = Cart.builder()
                 .id(1L)
@@ -87,13 +105,13 @@ class UserCartServiceTest {
                 .build();
 
         given(this.productRepository.findById(1L)).willReturn(Optional.of(new Product()));
-        given(userCartRespository.findByProductId(1L))
+        given(userCartRespository.findByProductIdAndUserId(1L, 1L))
                 .willReturn(Optional.of(existingCartItem));
 
         given(userCartRespository.save(existingCartItem)).willReturn(updatedCartItem);
 
         // when
-        userCartService.addCartItem(body);
+        userCartService.addCartItem(body, userDetail);
 
         // then
         ArgumentCaptor<Cart> cartCaptor = ArgumentCaptor.forClass(Cart.class);
@@ -108,14 +126,14 @@ class UserCartServiceTest {
     @Test
     void addCartItem_withNotFoundProductId_throwsNotFoundException() {
         // given
-        AddItemRequest body = new AddItemRequest(1L, 1000L);
+        AddItemRequest body = new AddItemRequest(1000L);
 
         given(productRepository.findById(1000L))
                 .willReturn(Optional.empty());
 
         // when
         assertThrows(NotFoundException.class, () -> {
-            userCartService.addCartItem(body);
+            userCartService.addCartItem(body, userDetail);
         });
 
         // then
@@ -168,12 +186,12 @@ class UserCartServiceTest {
                 .quantity(5) // update amount quantity
                 .build();
 
-        given(userCartRespository.findById(1L)).willReturn(Optional.of(cart));
+        given(userCartRespository.findByIdAndUserId(1L, 1L)).willReturn(Optional.of(cart));
         given(userCartRespository.save(cart)).willReturn(updatedCart);
 
 
         // when
-        userCartService.updateQuantityOfItem(body);
+        userCartService.updateQuantityOfItem(body, userDetail);
 
         // then
         ArgumentCaptor<Cart> cartCaptor = ArgumentCaptor.forClass(Cart.class);
@@ -189,18 +207,18 @@ class UserCartServiceTest {
     void updateQuantityOfItem_withNonCartItemId_throwsNotFoundException() {
         // given
         UpdateItemRequest body = new UpdateItemRequest(1L, 5);
-        given(userCartRespository.findById(1L))
+        given(userCartRespository.findByIdAndUserId(1L, 1L))
                 .willThrow(NotFoundException.class);
 
         // when
         assertThrows(NotFoundException.class, () -> {
-            userCartService.updateQuantityOfItem(body);
+            userCartService.updateQuantityOfItem(body, userDetail);
         });
 
 
         //verity
         verify(userCartRespository, times(1))
-                .findById( 1L);
+                .findByIdAndUserId(1L, 1L);
 
     }
 
@@ -215,14 +233,14 @@ class UserCartServiceTest {
                 .build();
 
 
-        given(userCartRespository.findById(1L)).willReturn(Optional.of(cart));
+        given(userCartRespository.findByIdAndUserId(1L, 1L)).willReturn(Optional.of(cart));
         doNothing().when(userCartRespository).deleteById(1L);
 
         // when
-        userCartService.removeCartItem(1l);
+        userCartService.removeCartItem(1l, userDetail);
 
         // then
-        verify(userCartRespository, times(1)).findById(1L);
+        verify(userCartRespository, times(1)).findByIdAndUserId(1L, 1L);
 
         verify(userCartRespository, times(1)).deleteById(1L);
     }
@@ -230,17 +248,17 @@ class UserCartServiceTest {
     @Test
     void removeCartItem_withNonCartItemId_throwsNotFoundException() {
         // given
-        given(userCartRespository.findById(1L))
+        given(userCartRespository.findByIdAndUserId(1L, 1L))
                 .willThrow(NotFoundException.class);
 
         // when
         assertThrows(NotFoundException.class, () -> {
-            userCartService.removeCartItem(1L);
+            userCartService.removeCartItem(1L, userDetail);
         });
 
 
         // then
-        verify(userCartRespository, times(1)).findById(1L);
+        verify(userCartRespository, times(1)).findByIdAndUserId(1L, 1L);
 
         verify(userCartRespository, never()).deleteById(1L);
     }
