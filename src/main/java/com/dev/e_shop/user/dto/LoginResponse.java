@@ -15,5 +15,6 @@ public record LoginResponse(
         String email,
 
         String role,
-        String token
+        String token,
+        String freshToken
 ) { }

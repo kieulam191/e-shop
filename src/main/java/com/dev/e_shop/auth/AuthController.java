@@ -1,5 +1,7 @@
 package com.dev.e_shop.auth;
 
+import com.dev.e_shop.auth.refreshToken.dto.RefreshTokenRequest;
+import com.dev.e_shop.auth.refreshToken.dto.RefreshTokenResponse;
 import com.dev.e_shop.dto.ApiResponse;
 import com.dev.e_shop.user.dto.RegisterRequest;
 import com.dev.e_shop.user.dto.LoginRequest;
@@ -45,6 +47,18 @@ public class AuthController {
                         201,
                         "Register User success",
                         savedUser
+                ));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest body) {
+        RefreshTokenResponse refresh = authService.refresh(body);
+
+        return ResponseEntity.status(200)
+                .body(new ApiResponse<RefreshTokenResponse>(
+                        200,
+                        "Refresh new token success",
+                        refresh
                 ));
     }
 }

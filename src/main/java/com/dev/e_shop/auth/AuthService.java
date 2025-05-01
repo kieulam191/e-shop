@@ -1,6 +1,12 @@
 package com.dev.e_shop.auth;
 
+import com.dev.e_shop.auth.refreshToken.RefreshToken;
+import com.dev.e_shop.auth.refreshToken.RefreshTokenService;
+import com.dev.e_shop.auth.refreshToken.dto.RefreshTokenRequest;
+import com.dev.e_shop.auth.refreshToken.dto.RefreshTokenResponse;
+import com.dev.e_shop.auth.refreshToken.exception.InvalidRefreshTokenException;
 import com.dev.e_shop.exception.AlreadyResourceException;
+import com.dev.e_shop.exception.NotFoundException;
 import com.dev.e_shop.user.User;
 import com.dev.e_shop.user.UserDetail;
 import com.dev.e_shop.user.UserRepository;
@@ -28,16 +34,20 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthService(UserRepository userRepository,
                        UserMapper userMapper,
                        PasswordEncoder passwordEncoder,
-                       AuthenticationManager authenticationManager, JwtService jwtService) {
+                       AuthenticationManager authenticationManager,
+                       JwtService jwtService,
+                       RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Transactional
@@ -60,13 +70,30 @@ public class AuthService {
         UserDetail userDetail = (UserDetail) authenticated.getPrincipal();
         String roles = getAuthority(authenticated);
         String token = jwtService.generateToken(userDetail);
+        RefreshToken refreshToken = refreshTokenService.create(userDetail.getUsername());
 
         SecurityContextHolder.getContext().setAuthentication(authenticated);
 
         return new LoginResponse(
                 userDetail.getUsername(),
                 roles,
-                token);
+                token,
+                refreshToken.getToken());
+    }
+
+    public RefreshTokenResponse refresh(RefreshTokenRequest body) {
+        try {
+            RefreshToken refreshToken = this.refreshTokenService.verifyRefreshToken(body.token());
+
+            User user = this.userRepository.findById(refreshToken.getUserId())
+                    .orElseThrow(() -> new NotFoundException("User not found"));
+
+            String token = jwtService.generateToken(new UserDetail(user));
+
+            return new RefreshTokenResponse(token, refreshToken.getToken());
+        } catch (InvalidRefreshTokenException ex) {
+            throw new InvalidRefreshTokenException("Refresh token expired");
+        }
     }
 
     private String getAuthority(Authentication authenticated) {

@@ -1,11 +1,13 @@
 package com.dev.e_shop.exception;
 
+import com.dev.e_shop.auth.refreshToken.exception.InvalidRefreshTokenException;
 import com.dev.e_shop.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -49,6 +51,26 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse<>(
                         404,
                         "Resource not found",
+                        Collections.singleton(ex.getMessage()),
+                        request.getRequestURI()));
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlerUsernameNotFoundException(UsernameNotFoundException ex, HttpServletRequest request) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse<>(
+                        401,
+                        "Authentication failed",
+                        Collections.singleton(ex.getMessage()),
+                        request.getRequestURI()));
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ErrorResponse> handlerInvalidRefreshToken(InvalidRefreshTokenException ex, HttpServletRequest request) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse<>(
+                        401,
+                        "Unauthorized",
                         Collections.singleton(ex.getMessage()),
                         request.getRequestURI()));
     }
