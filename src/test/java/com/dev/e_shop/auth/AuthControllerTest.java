@@ -1,5 +1,8 @@
 package com.dev.e_shop.auth;
 
+import com.dev.e_shop.auth.refreshToken.dto.RefreshTokenRequest;
+import com.dev.e_shop.auth.refreshToken.dto.RefreshTokenResponse;
+import com.dev.e_shop.auth.refreshToken.exception.InvalidRefreshTokenException;
 import com.dev.e_shop.exception.AlreadyResourceException;
 import com.dev.e_shop.user.dto.LoginRequest;
 import com.dev.e_shop.user.dto.LoginResponse;
@@ -45,7 +48,8 @@ class AuthControllerTest {
         LoginResponse loginResponse = new LoginResponse(
                 "test@gmail.com",
                 Roles.USER.name(),
-                "valid_token");
+                "valid_token",
+                "valid_refresh_token");
 
 
         given(this.authService.login(any(LoginRequest.class)))
@@ -159,5 +163,49 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.errors.password").value("Password must be at least 6 characters"))
                 .andExpect(jsonPath("$.errors.email").value("Invalid Email format"))
                 .andExpect(jsonPath("$.path").value("/api/auth/login"));
+    }
+
+    @Test
+    void refresh_withValidToken_returnsRefreshTokenResponse() throws Exception {
+        RefreshTokenRequest body = new RefreshTokenRequest("valid-token");
+        String json = objectMapper.writeValueAsString(body);
+
+        RefreshTokenResponse response = new RefreshTokenResponse("new-token", "valid-token");
+
+
+        given(this.authService.refresh(any(RefreshTokenRequest.class)))
+                .willReturn(response);
+
+        //when and then
+        this.mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Refresh new token success"))
+                .andExpect(jsonPath("$.data.newToken").value("new-token"))
+                .andExpect(jsonPath("$.data.refreshToken").value("valid-token"));
+
+    }
+
+
+    @Test
+    void refresh_withExpiryToken_returnsUnauthorizedException() throws Exception {
+        RefreshTokenRequest body = new RefreshTokenRequest("invalid-token");
+        String json = objectMapper.writeValueAsString(body);
+
+        given(this.authService.refresh(any(RefreshTokenRequest.class)))
+                .willThrow(new InvalidRefreshTokenException("Refresh token expired"));
+
+        //when and then
+        this.mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.message").value("Unauthorized"))
+                .andExpect(jsonPath("$.errors[0]").value("Refresh token expired"))
+                .andExpect(jsonPath("$.path").value("/api/auth/refresh"));
+
     }
 }
