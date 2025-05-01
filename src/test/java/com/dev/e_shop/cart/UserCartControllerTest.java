@@ -5,6 +5,9 @@ import com.dev.e_shop.cart.dto.CartDto;
 import com.dev.e_shop.cart.dto.CartResponse;
 import com.dev.e_shop.cart.dto.UpdateItemRequest;
 import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.user.User;
+import com.dev.e_shop.user.UserDetail;
+import com.dev.e_shop.user.profile.Profile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser(username = "user", roles = "USER")
 class UserCartControllerTest {
 
     @Autowired
@@ -44,6 +52,25 @@ class UserCartControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    UserDetail userDetail;
+
+    @BeforeEach
+    void setUp() {
+        Profile profile = new Profile();
+        profile.setId(1L);
+        profile.setUserId(1L);
+
+        User user = new User();
+        user.setEmail("test@gmail.com");
+        user.setId(1L);
+
+        userDetail = new UserDetail(user);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetail, null,
+                userDetail.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
 
     @Test
     void getCartByUserId_withValidInput_returnsCartResponse() throws Exception {
@@ -60,8 +87,7 @@ class UserCartControllerTest {
         given(userCartService.getCartByUserId(1L)).willReturn(response);
 
         //when and then
-        this.mockMvc.perform(get("/api/users/cart/me")
-                        .param("user-id", "1")
+        this.mockMvc.perform(get("/api/user/cart/me")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.message").value("Get the cart success"))
@@ -71,13 +97,13 @@ class UserCartControllerTest {
     @Test
     void addCartItem_withValidInput_returns201() throws Exception {
         //given
-        AddItemRequest body = new AddItemRequest(1 ,1);
+        AddItemRequest body = new AddItemRequest(1L);
         String json = objectMapper.writeValueAsString(body);
 
-        willDoNothing().given(this.userCartService).addCartItem(body);
+        willDoNothing().given(this.userCartService).addCartItem(body, userDetail);
 
 
-        this.mockMvc.perform(post("/api/users/cart/")
+        this.mockMvc.perform(post("/api/user/cart/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
                         .accept(MediaType.APPLICATION_JSON))
@@ -89,33 +115,35 @@ class UserCartControllerTest {
     @Test
     void addCartItem_withNotFoundProductId_throwsNotFoundException() throws Exception {
         //given
-        AddItemRequest body = new AddItemRequest(1 ,1);
+        AddItemRequest body = new AddItemRequest(1L);
         String json = objectMapper.writeValueAsString(body);
 
-        willThrow(new NotFoundException("Product with ID 1 not found")).given(this.userCartService).addCartItem(body);
+        willThrow(new NotFoundException("Product with ID 1 not found")).given(this.userCartService)
+                .addCartItem(body, userDetail);
 
 
-        this.mockMvc.perform(post("/api/users/cart/")
+        this.mockMvc.perform(post("/api/user/cart/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Resource not found"))
                 .andExpect(jsonPath("$.errors[0]").value("Product with ID 1 not found"))
-                .andExpect(jsonPath("$.path").value("/api/users/cart/"));
+                .andExpect(jsonPath("$.path").value("/api/user/cart/me"));
 
     }
 
     @Test
     void addCartItem_withExistingCartItem_returnsCartResponse() throws Exception {
         //given
-        AddItemRequest body = new AddItemRequest(1 ,1);
+        AddItemRequest body = new AddItemRequest(1L);
         String json = objectMapper.writeValueAsString(body);
 
-        willDoNothing().given(this.userCartService).addCartItem(any(AddItemRequest.class));
+        willDoNothing().given(this.userCartService)
+                .addCartItem(any(AddItemRequest.class), any(UserDetail.class));
 
 
-        this.mockMvc.perform(post("/api/users/cart/")
+        this.mockMvc.perform(post("/api/user/cart/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
                         .accept(MediaType.APPLICATION_JSON))
@@ -130,10 +158,11 @@ class UserCartControllerTest {
         UpdateItemRequest body = new UpdateItemRequest(1,5);
         String json = objectMapper.writeValueAsString(body);
 
-        willDoNothing().given(this.userCartService).updateQuantityOfItem(any(UpdateItemRequest.class));
+        willDoNothing().given(this.userCartService)
+                .updateQuantityOfItem(any(UpdateItemRequest.class), any(UserDetail.class));
 
         //when and then
-        this.mockMvc.perform(patch("/api/users/cart/")
+        this.mockMvc.perform(patch("/api/user/cart/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
                         .accept(MediaType.APPLICATION_JSON))
@@ -148,17 +177,18 @@ class UserCartControllerTest {
         UpdateItemRequest body = new UpdateItemRequest(1,0);
         String json = objectMapper.writeValueAsString(body);
 
-        willDoNothing().given(this.userCartService).updateQuantityOfItem(any(UpdateItemRequest.class));
+        willDoNothing().given(this.userCartService)
+                .updateQuantityOfItem(any(UpdateItemRequest.class), any(UserDetail.class));
 
         //when and then
-        this.mockMvc.perform(patch("/api/users/cart/")
+        this.mockMvc.perform(patch("/api/user/cart/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Validation failed for one or more fields."))
                 .andExpect(jsonPath("$.errors.amount").value("Amount must be greater than 0"))
-                .andExpect(jsonPath("$.path").value("/api/users/cart/"));
+                .andExpect(jsonPath("$.path").value("/api/user/cart/me"));
     }
 
     @Test
@@ -169,27 +199,27 @@ class UserCartControllerTest {
 
 
         doThrow(new NotFoundException("Item cart with ID 1000 not found in your cart"))
-                .when(this.userCartService).updateQuantityOfItem(body);
+                .when(this.userCartService).updateQuantityOfItem(body, userDetail);
 
         //when and then
-        this.mockMvc.perform(patch("/api/users/cart/")
+        this.mockMvc.perform(patch("/api/user/cart/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Resource not found"))
                 .andExpect(jsonPath("$.errors[0]").value("Item cart with ID 1000 not found in your cart"))
-                .andExpect(jsonPath("$.path").value("/api/users/cart/"));
+                .andExpect(jsonPath("$.path").value("/api/user/cart/me"));
     }
 
     @Test
     void removeCartItem_withExistingCartItemId_returns200() throws Exception {
         //given
         willDoNothing().given(this.userCartService)
-                .removeCartItem(1L);
+                .removeCartItem(1L, userDetail);
 
         //when and then
-        this.mockMvc.perform(delete("/api/users/cart/1")
+        this.mockMvc.perform(delete("/api/user/cart/1")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.message").value("Delete the item to cart success"))
@@ -200,15 +230,15 @@ class UserCartControllerTest {
     void removeCartItem_withNotFoundCartItemId_returnsNotFoundException() throws Exception {
         //given
         doThrow(new NotFoundException("Item cart with ID 1 not found in your cart"))
-                .when(this.userCartService).removeCartItem(1);
+                .when(this.userCartService).removeCartItem(1, userDetail);
 
 
         //when and then
-        this.mockMvc.perform(delete("/api/users/cart/1")
+        this.mockMvc.perform(delete("/api/user/cart/1")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Resource not found"))
                 .andExpect(jsonPath("$.errors[0]").value("Item cart with ID 1 not found in your cart"))
-                .andExpect(jsonPath("$.path").value("/api/users/cart/1"));
+                .andExpect(jsonPath("$.path").value("/api/user/cart/1"));
     }
 }

@@ -1,11 +1,13 @@
 package com.dev.e_shop.exception;
 
-import com.dev.e_shop.dto.ApiResponse;
+import com.dev.e_shop.auth.refreshToken.exception.InvalidRefreshTokenException;
 import com.dev.e_shop.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -49,6 +51,26 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse<>(
                         404,
                         "Resource not found",
+                        Collections.singleton(ex.getMessage()),
+                        request.getRequestURI()));
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlerUsernameNotFoundException(UsernameNotFoundException ex, HttpServletRequest request) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse<>(
+                        401,
+                        "Authentication failed",
+                        Collections.singleton(ex.getMessage()),
+                        request.getRequestURI()));
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ErrorResponse> handlerInvalidRefreshToken(InvalidRefreshTokenException ex, HttpServletRequest request) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse<>(
+                        401,
+                        "Unauthorized",
                         Collections.singleton(ex.getMessage()),
                         request.getRequestURI()));
     }
@@ -103,6 +125,42 @@ public class GlobalExceptionHandler {
                         Arrays.asList(message),
                         request.getRequestURI()
                 ));
+    }
+
+    @ExceptionHandler(AlreadyResourceException.class)
+    public ResponseEntity<ErrorResponse> handleAlreadyResourceException(
+            AlreadyResourceException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(409).body(new ErrorResponse(
+                409,
+                "Resource already exists",
+                Arrays.asList(ex.getMessage()),
+                request.getRequestURI()
+        ));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(
+            BadCredentialsException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(401).body(new ErrorResponse(
+                401,
+                "Bad credentials",
+                Arrays.asList("Wrong email or password"),
+                request.getRequestURI()
+        ));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(
+            Exception ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(500).body(new ErrorResponse(
+                500,
+                "Internal server error",
+                Arrays.asList("An unexpected error occurred"),
+                request.getRequestURI()
+        ));
     }
 
     private Throwable getRootCause(Throwable throwable) {
