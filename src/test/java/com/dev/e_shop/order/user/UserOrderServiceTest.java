@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 
 @ExtendWith(MockitoExtension.class)
 class UserOrderServiceTest {
@@ -177,6 +178,8 @@ class UserOrderServiceTest {
 
         given(this.productRepository.findById(1L)).willReturn(Optional.of(product));
         given(this.productRepository.findById(2L)).willReturn(Optional.of(product));
+        willDoNothing().given(this.userCartRepository).deleteById(1L);
+        willDoNothing().given(this.userCartRepository).deleteById(2L);
         given(this.orderMapper.toOrderResponse(any(Order.class)))
                 .willReturn(response);
         //when
