@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
-class OrderControllerTest {
+class UserOrderControllerTest {
 
     @MockitoBean
     UserOrderService orderService;

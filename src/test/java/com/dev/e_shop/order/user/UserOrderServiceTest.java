@@ -17,7 +17,6 @@ import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
 import com.dev.e_shop.user.User;
 import com.dev.e_shop.user.UserDetail;
-import org.assertj.core.api.ObjectEnumerableAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +38,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-class OrderServiceTest {
+class UserOrderServiceTest {
     @InjectMocks
     UserOrderService orderService;
 
