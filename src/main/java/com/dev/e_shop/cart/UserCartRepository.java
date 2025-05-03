@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -20,4 +21,7 @@ public interface UserCartRepository extends JpaRepository<Cart, Long> {
     Optional<Cart> findByProductIdAndUserId(long productId, long userId);
 
     Optional<Cart> findByIdAndUserId(long id, long userId);
+
+    @Query("SELECT COUNT(c) = :size FROM Cart c WHERE c.id IN :ids AND c.userId = :userId")
+    boolean checkAllIdsExist(@Param("ids") List<Long> ids, @Param("size") long size,@Param("userId") long userId);
 }

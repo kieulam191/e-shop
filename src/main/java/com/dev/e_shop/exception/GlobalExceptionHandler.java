@@ -151,6 +151,18 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    @ExceptionHandler(CartItemNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCartItemNotFound(
+            CartItemNotFoundException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(400).body(new ErrorResponse(
+                400,
+                "Bad Request",
+                Arrays.asList(ex.getMessage()),
+                request.getRequestURI()
+        ));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleBadCredentials(
             Exception ex,
