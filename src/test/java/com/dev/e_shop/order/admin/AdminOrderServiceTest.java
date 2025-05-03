@@ -6,7 +6,7 @@ import com.dev.e_shop.order.OrderRepository;
 import com.dev.e_shop.order.dto.OrderResponse;
 import com.dev.e_shop.order.dto.UpdatedOrderRequest;
 import com.dev.e_shop.order.mapper.OrderMapper;
-import com.dev.e_shop.order.status.Orders;
+import com.dev.e_shop.order.status.OrderStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +20,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,20 +46,20 @@ class AdminOrderServiceTest {
 
     @BeforeEach
     void setUp() {
-        updatedOrderRequest = new UpdatedOrderRequest(1L);
+        updatedOrderRequest = new UpdatedOrderRequest(1L, OrderStatus.SHIPPED);
     }
 
     @Test
     void updateOrderState_withExistingOrderId_returnsUpdatedOrderResponse() {
         //given
         Order order = new Order();
-        order.setStatus(Orders.PENDING);
+        order.setStatus(OrderStatus.PENDING);
 
         Order updatedOrderState = new Order();
-        order.setStatus(Orders.SHIPPED);
+        order.setStatus(OrderStatus.SHIPPED);
 
         OrderResponse response = new OrderResponse(1L,
-                Orders.SHIPPED.name(),
+                OrderStatus.SHIPPED.name(),
                 BigDecimal.valueOf(5000),
                 LocalDateTime.parse("2025-05-01T10:00:00"));
 
@@ -75,15 +74,12 @@ class AdminOrderServiceTest {
         //that
         assertThat(actual).isNotNull();
         assertThat(actual.id()).isEqualTo(1L);
-        assertThat(actual.status()).isEqualTo(Orders.SHIPPED.name());
+        assertThat(actual.status()).isEqualTo(OrderStatus.SHIPPED.name());
     }
 
     @Test
     void updateOrderState_withNonOrderId_throwsNotFoundException() {
         //given
-        Order order = new Order();
-        order.setStatus(Orders.PENDING);
-
         given(orderRepository.findById(1L)).willReturn(Optional.empty());
         //when
 
@@ -97,15 +93,16 @@ class AdminOrderServiceTest {
         //given
         int page = 0;
         int size = 2;
+        OrderStatus status = OrderStatus.PENDING;
 
         Order order1 = new Order();
         order1.setId(1L);
-        order1.setStatus(Orders.PENDING);
+        order1.setStatus(OrderStatus.PENDING);
         order1.setUserId(1L);
 
         Order order2 = new Order();
         order2.setId(2L);
-        order2.setStatus(Orders.PENDING);
+        order2.setStatus(OrderStatus.PENDING);
         order2.setUserId(1L);
 
 
@@ -116,10 +113,10 @@ class AdminOrderServiceTest {
         List<Order> pagedList = orders.subList(start, end);
         Page<Order> orderPage = new PageImpl<>(pagedList, PageRequest.of(page, size), orders.size());
 
-        given(this.orderRepository.findAllByStatus(any(Pageable.class), eq(Orders.PENDING)))
+        given(this.orderRepository.findAllByStatus(any(Pageable.class), eq(status)))
                 .willReturn(orderPage);
         //when
-        Map<String, Object> actual = this.adminOrderService.getAllOrderByStatus(page, size, Orders.PENDING);
+        Map<String, Object> actual = this.adminOrderService.getAllOrderByStatus(page, size, OrderStatus.PENDING);
 
         //then
         assertThat(actual).isNotNull();

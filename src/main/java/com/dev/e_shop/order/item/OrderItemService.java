@@ -40,9 +40,7 @@ public class OrderItemService {
         Map<String, Object> data = new HashMap<>();
         data.put(ORDER_ITEM_KEY, orderPage.getContent()
                 .stream()
-                .map(orderItem -> {
-                    return orderItemMapper.toOrderItemResponse(orderItem);
-                })
+                .map(orderItemMapper::toOrderItemResponse)
                 .collect(Collectors.toList())
         );
         data.put(PAGINATION_KEY, new PaginationResponse(

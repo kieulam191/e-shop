@@ -1,6 +1,6 @@
 package com.dev.e_shop.order;
 
-import com.dev.e_shop.order.status.Orders;
+import com.dev.e_shop.order.status.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -27,7 +27,7 @@ public class Order {
     private long userId;
 
     @Enumerated(value = EnumType.STRING)
-    private Orders status = Orders.PENDING;
+    private OrderStatus status = OrderStatus.PENDING;
 
     @Column(nullable = false)
     private BigDecimal totalAmount;

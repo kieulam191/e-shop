@@ -7,7 +7,7 @@ import com.dev.e_shop.order.OrderRepository;
 import com.dev.e_shop.order.dto.OrderResponse;
 import com.dev.e_shop.order.dto.UpdatedOrderRequest;
 import com.dev.e_shop.order.mapper.OrderMapper;
-import com.dev.e_shop.order.status.Orders;
+import com.dev.e_shop.order.status.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +31,7 @@ public class AdminOrderService {
         this.orderMapper = orderMapper;
     }
 
-    public Map<String, Object> getAllOrderByStatus(int page, int size, Orders status) {
+    public Map<String, Object> getAllOrderByStatus(int page, int size, OrderStatus status) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orderPages = orderRepository.findAllByStatus(pageable, status);
 
@@ -39,11 +39,10 @@ public class AdminOrderService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public OrderResponse updateOrderState(UpdatedOrderRequest body) {
-        return orderRepository.findById(body.orderId())
+    public OrderResponse updateOrderState(UpdatedOrderRequest payload) {
+        return orderRepository.findById(payload.orderId())
                 .map(order -> {
-                    order.setStatus(Orders.SHIPPED);
-
+                    order.setStatus(payload.status());
                     Order savedOrder = this.orderRepository.save(order);
 
                     return this.orderMapper.toOrderResponse(savedOrder);
@@ -55,9 +54,7 @@ public class AdminOrderService {
         Map<String, Object> data = new HashMap<>();
         data.put(ORDER_KEY, orderPage.getContent()
                 .stream()
-                .map(order -> {
-                    return orderMapper.toOrderResponse(order);
-                })
+                .map(orderMapper::toOrderResponse)
                 .collect(Collectors.toList())
         );
         data.put(PAGINATION_KEY, new PaginationResponse(

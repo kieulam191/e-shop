@@ -1,10 +1,9 @@
 package com.dev.e_shop.order.admin;
 
 import com.dev.e_shop.dto.ApiResponse;
-import com.dev.e_shop.order.dto.OrderRequest;
 import com.dev.e_shop.order.dto.OrderResponse;
 import com.dev.e_shop.order.dto.UpdatedOrderRequest;
-import com.dev.e_shop.order.status.Orders;
+import com.dev.e_shop.order.status.OrderStatus;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +23,7 @@ public class AdminOrderController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderByStatus(
             @RequestParam(defaultValue = "0", required = false) int page,
             @RequestParam(defaultValue = "1", required = false) int size,
-            @RequestParam(defaultValue = "PENDING", required = false) Orders status
+            @RequestParam(defaultValue = "PENDING", required = false) OrderStatus status
     ) {
         Map<String, Object> allOrder = adminOrderService.getAllOrderByStatus(page, size, status);
 

@@ -89,8 +89,6 @@ class OrderItemServiceTest {
         assertThrows(NotFoundException.class, () -> {
             Map<String, Object> actual = this.orderItemService.getItemsByOrderId(1L, page, size);
         });
-
-
         //then
     }
 

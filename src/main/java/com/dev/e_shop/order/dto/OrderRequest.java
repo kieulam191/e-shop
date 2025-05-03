@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 
 public record OrderRequest(
-        @NotNull(message = "orderItem is required")
-        @Size(min = 1, message = "Order must have at least one item")
-        List<CartDto> orderItem
+        @NotNull(message = "orderItems is required")
+        @Size(min = 1, message = "orderItems must have at least one item")
+        List<CartDto> orderItems
 ) { }

@@ -5,7 +5,7 @@ import com.dev.e_shop.exception.CartItemNotFoundException;
 import com.dev.e_shop.order.dto.OrderRequest;
 import com.dev.e_shop.order.dto.OrderResponse;
 import com.dev.e_shop.order.item.dto.OrderItemResponse;
-import com.dev.e_shop.order.status.Orders;
+import com.dev.e_shop.order.status.OrderStatus;
 import com.dev.e_shop.user.User;
 import com.dev.e_shop.user.UserDetail;
 import com.dev.e_shop.user.profile.Profile;
@@ -84,7 +84,7 @@ class UserOrderControllerTest {
 
         OrderResponse orderResponse = new OrderResponse(
                 1L,
-                Orders.PENDING.name(),
+                OrderStatus.PENDING.name(),
                 BigDecimal.valueOf(5000),
                 LocalDateTime.parse("2025-05-01T10:00:00"));
 
@@ -100,7 +100,7 @@ class UserOrderControllerTest {
                 .andExpect(jsonPath("$.status").value(201))
                 .andExpect(jsonPath("$.message").value("Create a order success"))
                 .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.status").value(Orders.PENDING.name()))
+                .andExpect(jsonPath("$.data.status").value(OrderStatus.PENDING.name()))
                 .andExpect(jsonPath("$.data.totalAmount").value(5000))
                 .andExpect(jsonPath("$.data.createAt").value("2025-05-01T10:00:00"));
     }
@@ -145,13 +145,13 @@ class UserOrderControllerTest {
         List<OrderResponse> orderResponses = List.of(
                 new OrderResponse(
                         1L,
-                        Orders.PENDING.name(),
+                        OrderStatus.PENDING.name(),
                         BigDecimal.valueOf(5000),
                         LocalDateTime.parse("2025-05-01T10:00:00")
                 ),
                 new OrderResponse(
                         2L,
-                        Orders.PENDING.name(),
+                        OrderStatus.PENDING.name(),
                         BigDecimal.valueOf(5000),
                         LocalDateTime.parse("2025-05-01T10:00:00")
                 )

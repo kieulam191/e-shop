@@ -12,7 +12,7 @@ import com.dev.e_shop.order.item.OrderItem;
 import com.dev.e_shop.order.item.OrderItemRepository;
 import com.dev.e_shop.order.item.OrderItemService;
 import com.dev.e_shop.order.mapper.OrderMapper;
-import com.dev.e_shop.order.status.Orders;
+import com.dev.e_shop.order.status.OrderStatus;
 import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
 import com.dev.e_shop.user.User;
@@ -103,7 +103,7 @@ class UserOrderServiceTest {
                 .willReturn(orderPage);
 
         OrderResponse response = new OrderResponse(1L,
-                Orders.PENDING.name(),
+                OrderStatus.PENDING.name(),
                 BigDecimal.valueOf(5000),
                 LocalDateTime.parse("2025-05-01T10:00:00"));
         //when
@@ -167,7 +167,7 @@ class UserOrderServiceTest {
 
         OrderRequest orderRequest = new OrderRequest(cartItems);
         OrderResponse response = new OrderResponse(1L,
-                Orders.PENDING.name(),
+                OrderStatus.PENDING.name(),
                 BigDecimal.valueOf(5000),
                 LocalDateTime.parse("2025-05-01T10:00:00"));
 

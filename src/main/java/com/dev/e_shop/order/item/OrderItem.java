@@ -6,7 +6,7 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "orderItem")
+@Table(name = "orderItems")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,10 +23,10 @@ public class OrderItem {
     @Column(nullable = false)
     private Long productId;
 
-    @Column
+    @Column(nullable = false)
     private String productName;
 
-    @Column
+    @Column(nullable = false)
     private BigDecimal price;
 
     @Column(nullable = false)

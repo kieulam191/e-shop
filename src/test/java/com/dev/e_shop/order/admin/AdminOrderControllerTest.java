@@ -3,7 +3,7 @@ package com.dev.e_shop.order.admin;
 import com.dev.e_shop.exception.NotFoundException;
 import com.dev.e_shop.order.dto.OrderResponse;
 import com.dev.e_shop.order.dto.UpdatedOrderRequest;
-import com.dev.e_shop.order.status.Orders;
+import com.dev.e_shop.order.status.OrderStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,13 +46,13 @@ class AdminOrderControllerTest {
 
     @BeforeEach
     void setUp() {
-        updatedOrderRequest = new UpdatedOrderRequest(1L);
+        updatedOrderRequest = new UpdatedOrderRequest(1L, OrderStatus.SHIPPED);
     }
 
     @Test
     void updateOrderState_WithExistingOrderId_ReturnsUpdatedOrderResponse() throws Exception {
         OrderResponse response = new OrderResponse(1L,
-                Orders.SHIPPED.name(),
+                OrderStatus.SHIPPED.name(),
                 BigDecimal.valueOf(5000),
                 LocalDateTime.parse("2025-05-01T10:00:00"));
 
@@ -68,7 +68,7 @@ class AdminOrderControllerTest {
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.message").value("Updated order status success"))
                 .andExpect(jsonPath("$.data.id").value(1L))
-                .andExpect(jsonPath("$.data.status").value(Orders.SHIPPED.name()));
+                .andExpect(jsonPath("$.data.status").value(OrderStatus.SHIPPED.name()));
     }
 
     @Test
@@ -102,13 +102,13 @@ class AdminOrderControllerTest {
         List<OrderResponse> orderResponses = List.of(
                 new OrderResponse(
                         1L,
-                        Orders.PENDING.name(),
+                        OrderStatus.PENDING.name(),
                         BigDecimal.valueOf(5000),
                         LocalDateTime.parse("2025-05-01T10:00:00")
                 ),
                 new OrderResponse(
                         2L,
-                        Orders.PENDING.name(),
+                        OrderStatus.PENDING.name(),
                         BigDecimal.valueOf(5000),
                         LocalDateTime.parse("2025-05-01T10:00:00")
                 )
@@ -118,7 +118,7 @@ class AdminOrderControllerTest {
         data.put("orders", orderResponses);
         data.put("pagination", infoPage);
 
-        given(this.adminOrderService.getAllOrderByStatus(page, size, Orders.PENDING))
+        given(this.adminOrderService.getAllOrderByStatus(page, size, OrderStatus.PENDING))
                 .willReturn(data);
 
         //when and then

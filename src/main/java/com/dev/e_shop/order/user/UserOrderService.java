@@ -88,7 +88,7 @@ public class UserOrderService {
         boolean allIdsExist = checkValidCartItem(body, userId);
 
         if(allIdsExist) {
-            body.orderItem().stream()
+            body.orderItems().stream()
                     .map(cartItem -> {
                         Product product = productRepository.findById(cartItem.getProductId())
                                 .orElseThrow(() -> new NotFoundException("Product not fount"));
@@ -112,7 +112,7 @@ public class UserOrderService {
     }
 
     private boolean checkValidCartItem(OrderRequest body, long userId) {
-        List<Long> ids = body.orderItem().stream()
+        List<Long> ids = body.orderItems().stream()
                 .map(cartDto -> cartDto.getId())
                 .collect(Collectors.toList());
 
