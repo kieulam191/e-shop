@@ -3,7 +3,7 @@ package com.dev.e_shop.order.user;
 import com.dev.e_shop.cart.UserCartRepository;
 import com.dev.e_shop.cart.dto.CartDto;
 import com.dev.e_shop.dto.PaginationResponse;
-import com.dev.e_shop.exception.CartItemNotFoundException;
+import com.dev.e_shop.exception.custom.CartItemNotFoundException;
 import com.dev.e_shop.order.Order;
 import com.dev.e_shop.order.OrderRepository;
 import com.dev.e_shop.order.dto.OrderRequest;

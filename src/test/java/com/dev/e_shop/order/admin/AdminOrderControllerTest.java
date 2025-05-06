@@ -1,6 +1,6 @@
 package com.dev.e_shop.order.admin;
 
-import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.exception.custom.NotFoundException;
 import com.dev.e_shop.order.dto.OrderResponse;
 import com.dev.e_shop.order.dto.UpdatedOrderRequest;
 import com.dev.e_shop.order.status.OrderStatus;

@@ -1,6 +1,6 @@
 package com.dev.e_shop.dto;
 
-import com.dev.e_shop.exception.InvalidHttpStatusException;
+import com.dev.e_shop.exception.custom.InvalidHttpStatusException;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
 

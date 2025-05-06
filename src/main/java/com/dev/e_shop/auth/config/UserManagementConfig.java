@@ -1,7 +1,6 @@
 package com.dev.e_shop.auth.config;
 
 import com.dev.e_shop.auth.CustomAuthProvider;
-import com.dev.e_shop.exception.NotFoundException;
 import com.dev.e_shop.user.User;
 import com.dev.e_shop.user.UserDetail;
 import com.dev.e_shop.user.UserRepository;
@@ -30,7 +29,7 @@ public class UserManagementConfig {
     UserDetailsService userDetailsService() {
         return username -> {
             User user = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("wrong username or password"));
+                    .orElseThrow(() -> new UsernameNotFoundException("Invalid username or password"));
 
             return new UserDetail(user);
         };

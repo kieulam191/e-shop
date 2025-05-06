@@ -4,7 +4,7 @@ import com.dev.e_shop.cart.dto.AddItemRequest;
 import com.dev.e_shop.cart.dto.CartDto;
 import com.dev.e_shop.cart.dto.CartResponse;
 import com.dev.e_shop.cart.dto.UpdateItemRequest;
-import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.exception.custom.NotFoundException;
 import com.dev.e_shop.user.User;
 import com.dev.e_shop.user.UserDetail;
 import com.dev.e_shop.user.profile.Profile;
@@ -12,8 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,7 +33,6 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @ActiveProfiles("test")

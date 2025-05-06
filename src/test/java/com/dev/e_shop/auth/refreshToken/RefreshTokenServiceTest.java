@@ -1,7 +1,7 @@
 package com.dev.e_shop.auth.refreshToken;
 
 import com.dev.e_shop.auth.refreshToken.exception.InvalidRefreshTokenException;
-import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.exception.custom.NotFoundException;
 import com.dev.e_shop.user.User;
 import com.dev.e_shop.user.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -130,7 +130,7 @@ class RefreshTokenServiceTest {
         });
 
         //then
-        assertEquals("Refresh token expired", exception.getMessage());
+        assertEquals("Refresh token expired", exception.getErrorDetail());
     }
 
     @Test
@@ -142,11 +142,11 @@ class RefreshTokenServiceTest {
                 .willReturn(Optional.empty());
 
         // When & Then
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        InvalidRefreshTokenException exception = assertThrows(InvalidRefreshTokenException.class, () -> {
             this.refreshTokenService.verifyRefreshToken(token);
         });
 
-        assertEquals("Invalid refresh token", exception.getMessage());
+        assertEquals("Invalid refresh token", exception.getErrorDetail());
     }
 
     @Test

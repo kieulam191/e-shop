@@ -1,7 +1,7 @@
 package com.dev.e_shop.order.admin;
 
 import com.dev.e_shop.dto.PaginationResponse;
-import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.exception.custom.NotFoundException;
 import com.dev.e_shop.order.Order;
 import com.dev.e_shop.order.OrderRepository;
 import com.dev.e_shop.order.dto.OrderResponse;

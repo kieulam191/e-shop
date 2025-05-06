@@ -1,6 +1,6 @@
 package com.dev.e_shop.product.Publics;
 
-import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.exception.custom.NotFoundException;
 import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.dto.ProductPreviewResponse;
 import com.dev.e_shop.product.dto.ProductResponse;

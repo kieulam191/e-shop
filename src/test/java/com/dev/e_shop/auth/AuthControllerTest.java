@@ -3,7 +3,7 @@ package com.dev.e_shop.auth;
 import com.dev.e_shop.auth.refreshToken.dto.RefreshTokenRequest;
 import com.dev.e_shop.auth.refreshToken.dto.RefreshTokenResponse;
 import com.dev.e_shop.auth.refreshToken.exception.InvalidRefreshTokenException;
-import com.dev.e_shop.exception.AlreadyResourceException;
+import com.dev.e_shop.exception.custom.AlreadyResourceException;
 import com.dev.e_shop.user.dto.LoginRequest;
 import com.dev.e_shop.user.dto.LoginResponse;
 import com.dev.e_shop.user.dto.RegisterRequest;
@@ -72,15 +72,15 @@ class AuthControllerTest {
         String json = objectMapper.writeValueAsString(body);
 
         given(this.authService.login(any(LoginRequest.class)))
-                .willThrow(BadCredentialsException.class);
+                .willThrow(new BadCredentialsException("Invalid email or password"));
         //when and then
         this.mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.message").value("Bad credentials"))
-                .andExpect(jsonPath("$.errors[0]").value("Wrong email or password"))
+                .andExpect(jsonPath("$.message").value("Authentication failed"))
+                .andExpect(jsonPath("$.errors[0]").value("Invalid email or password"))
                 .andExpect(jsonPath("$.path").value("/api/auth/login"));
     }
 

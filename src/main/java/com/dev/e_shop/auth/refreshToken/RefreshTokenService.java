@@ -1,7 +1,7 @@
 package com.dev.e_shop.auth.refreshToken;
 
 import com.dev.e_shop.auth.refreshToken.exception.InvalidRefreshTokenException;
-import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.exception.custom.NotFoundException;
 import com.dev.e_shop.user.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;

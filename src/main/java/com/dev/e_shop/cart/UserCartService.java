@@ -4,7 +4,7 @@ import com.dev.e_shop.cart.dto.AddItemRequest;
 import com.dev.e_shop.cart.dto.CartDto;
 import com.dev.e_shop.cart.dto.CartResponse;
 import com.dev.e_shop.cart.dto.UpdateItemRequest;
-import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.exception.custom.NotFoundException;
 import com.dev.e_shop.product.ProductRepository;
 import com.dev.e_shop.user.UserDetail;
 import org.springframework.stereotype.Service;
