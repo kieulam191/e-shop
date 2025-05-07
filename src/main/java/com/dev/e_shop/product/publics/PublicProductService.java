@@ -37,7 +37,7 @@ public class PublicProductService {
 
     public ProductResponse getProductDetailById(long id) {
         Product product = this.productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Resource not found"));
+                .orElseThrow(() -> new NotFoundException("Product with ID " + id + " not found"));
 
         return productMapper.toProductResponse(product);
     }

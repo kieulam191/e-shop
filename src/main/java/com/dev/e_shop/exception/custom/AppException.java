@@ -9,7 +9,7 @@ public class AppException extends RuntimeException {
     private final String message;
 
     public AppException(String detail, int status, String message) {
-        super(detail);
+        super(message);
         this.status = status;
         this.errorDetail = detail;
         this.message = message;

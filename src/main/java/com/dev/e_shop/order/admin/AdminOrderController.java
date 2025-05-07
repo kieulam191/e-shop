@@ -1,6 +1,7 @@
 package com.dev.e_shop.order.admin;
 
 import com.dev.e_shop.dto.ApiResponse;
+import com.dev.e_shop.dto.PaginationDto;
 import com.dev.e_shop.order.dto.OrderResponse;
 import com.dev.e_shop.order.dto.UpdatedOrderRequest;
 import com.dev.e_shop.order.status.OrderStatus;
@@ -21,11 +22,10 @@ public class AdminOrderController {
 
     @GetMapping("/")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderByStatus(
-            @RequestParam(defaultValue = "0", required = false) int page,
-            @RequestParam(defaultValue = "1", required = false) int size,
+            @Valid PaginationDto paginationDto,
             @RequestParam(defaultValue = "PENDING", required = false) OrderStatus status
     ) {
-        Map<String, Object> allOrder = adminOrderService.getAllOrderByStatus(page, size, status);
+        Map<String, Object> allOrder = adminOrderService.getAllOrderByStatus(paginationDto.getPageInt(), paginationDto.getSizeInt(), status);
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse<>(

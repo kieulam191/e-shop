@@ -186,7 +186,8 @@ class PublicProductControllerTest {
     @Test
     void getProductById_withNotFoundId_throwsNotFoundException() throws Exception {
         //given
-        given(this.productService.getProductDetailById(1L)).willThrow(new NotFoundException("Product with ID 1 not found"));
+        given(this.productService.getProductDetailById(1L)).willThrow(
+                new NotFoundException("Product with ID 1 not found"));
 
         //when and then
         this.mockMvc.perform(MockMvcRequestBuilders.get("/api/public/products/1")

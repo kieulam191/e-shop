@@ -1,7 +1,9 @@
 package com.dev.e_shop.product.publics;
 
 import com.dev.e_shop.dto.ApiResponse;
+import com.dev.e_shop.dto.PaginationDto;
 import com.dev.e_shop.product.dto.ProductResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,11 +20,11 @@ public class PublicProductController {
 
     @GetMapping("/")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getProductsByPagination(
-            @RequestParam(defaultValue = "0", required = false) int page,
-            @RequestParam(defaultValue = "1", required = false) int size
-    ) {
+            @Valid PaginationDto requestParamsDto) {
 
-        Map<String, Object> data = productService.getProductsByPagination(page, size);
+        Map<String, Object> data = productService.getProductsByPagination(
+                requestParamsDto.getPageInt(),
+                requestParamsDto.getSizeInt());
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse<>(
@@ -35,9 +37,11 @@ public class PublicProductController {
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getProductByName(
             @RequestParam String name,
-            @RequestParam(defaultValue = "0", required = false) int page,
-            @RequestParam(defaultValue = "1", required = false) int size ) {
-        Map<String, Object> product = productService.getProductContainByName(name, page, size);
+            @Valid PaginationDto requestParamsDto ) {
+        Map<String, Object> product = productService.getProductContainByName(
+                name,
+                requestParamsDto.getPageInt(),
+                requestParamsDto.getSizeInt());
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse<>(

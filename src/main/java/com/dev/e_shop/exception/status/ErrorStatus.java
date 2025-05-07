@@ -12,6 +12,7 @@ public final class ErrorStatus {
     public static final String ALREADY_RES = "Resource already exists";
     public static final String CART_ITEM_NOT_FOUND = "Bad Request";
     public static final String INTERNAL_SERVER = "Internal server error";
+    public static final String INVALID_REQUEST_PARAM = "Invalid request parameters";
 
     private ErrorStatus(){}
 }

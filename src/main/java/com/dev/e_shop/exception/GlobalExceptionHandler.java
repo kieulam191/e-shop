@@ -1,10 +1,12 @@
 package com.dev.e_shop.exception;
 
 import com.dev.e_shop.dto.ErrorResponse;
+import com.dev.e_shop.dto.PaginationDto;
 import com.dev.e_shop.exception.custom.AppException;
 import com.dev.e_shop.exception.custom.InvalidHttpStatusException;
 import com.dev.e_shop.exception.status.ErrorStatus;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +17,11 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @RestControllerAdvice
@@ -40,7 +44,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
 
 
-        return ResponseEntity.badRequest()
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(
                         404,
                         ErrorStatus.PAGE_NOT_FOUND,
@@ -50,7 +54,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ErrorResponse> handleAppException(AppException ex, HttpServletRequest request) {
-        return ResponseEntity.badRequest()
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse<>(ex.getStatus(),
                         ex.getMessage(),
                         Collections.singleton(ex.getErrorDetail()),
@@ -77,7 +81,13 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = new HashMap<>();
 
         e.getBindingResult().getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
+            String fieldError = error.getField();
+
+            if(PaginationDto.contains(fieldError)) {
+                errors.put(PaginationDto.getFieldName(fieldError), error.getDefaultMessage());
+            } else {
+                errors.put(fieldError, error.getDefaultMessage());
+            }
         });
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -117,6 +127,52 @@ public class GlobalExceptionHandler {
                         405,
                         ErrorStatus.METHOD_NOT_SUPPORT,
                         Arrays.asList(message),
+                        request.getRequestURI()
+                ));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatchParams(
+            MethodArgumentTypeMismatchException e,
+            HttpServletRequest request) {
+
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(),
+                        ErrorStatus.INVALID_REQUEST_PARAM,
+                        "Parameter 'page' must be an integer",
+                        request.getRequestURI()
+                ));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleRequestParamViolation(
+            ConstraintViolationException e,
+            HttpServletRequest request) {
+
+
+        Set<String> errors = e.getConstraintViolations().stream()
+                .filter(field -> {
+                    String fieldName = field.getPropertyPath().toString();
+
+                    return fieldName.equals("page") || fieldName.equals("size");
+                })
+                .map(violation -> {
+                    String paramDetail = violation.getPropertyPath().toString();
+                    String param = paramDetail.substring(paramDetail.lastIndexOf('.') + 1);
+
+                    String message = violation.getMessage();
+
+                    return String.format("Parameter '%s' %s", param, message);
+
+
+                }).collect(Collectors.toSet());
+
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(),
+                        ErrorStatus.INVALID_REQUEST_PARAM,
+                        errors,
                         request.getRequestURI()
                 ));
     }
