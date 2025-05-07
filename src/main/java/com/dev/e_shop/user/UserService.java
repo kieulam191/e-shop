@@ -1,6 +1,6 @@
 package com.dev.e_shop.user;
 
-import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.exception.custom.NotFoundException;
 import com.dev.e_shop.user.profile.Profile;
 import com.dev.e_shop.user.profile.ProfileRepository;
 import com.dev.e_shop.user.profile.dto.ProfileRequest;

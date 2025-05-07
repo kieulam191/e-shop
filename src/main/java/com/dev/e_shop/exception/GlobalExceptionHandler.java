@@ -1,23 +1,30 @@
 package com.dev.e_shop.exception;
 
-import com.dev.e_shop.auth.refreshToken.exception.InvalidRefreshTokenException;
 import com.dev.e_shop.dto.ErrorResponse;
+import com.dev.e_shop.dto.PaginationDto;
+import com.dev.e_shop.exception.custom.AppException;
+import com.dev.e_shop.exception.custom.InvalidHttpStatusException;
+import com.dev.e_shop.exception.status.ErrorStatus;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidHttpStatusException.class)
@@ -32,48 +39,39 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidHttpStatus(
+    public ResponseEntity<ErrorResponse> handlePageNotFound(
             NoResourceFoundException ex,
             HttpServletRequest request) {
 
 
-        return ResponseEntity.badRequest()
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(
                         404,
-                        "Page not found",
+                        ErrorStatus.PAGE_NOT_FOUND,
                         Arrays.asList("Endpoint " + request.getRequestURI() + " does not exist"),
                         request.getRequestURI()));
     }
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlerNotFoundException(NotFoundException ex, HttpServletRequest request) {
-        return ResponseEntity.badRequest()
+    @ExceptionHandler(AppException.class)
+    public ResponseEntity<ErrorResponse> handleAppException(AppException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse<>(ex.getStatus(),
+                        ex.getMessage(),
+                        Collections.singleton(ex.getErrorDetail()),
+                        request.getRequestURI()));
+    }
+
+    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
+    public ResponseEntity<ErrorResponse> handleAuthExceptions(
+            AuthenticationException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse<>(
-                        404,
-                        "Resource not found",
+                        401,
+                        ErrorStatus.USERNAME_NOT_FOUND,
                         Collections.singleton(ex.getMessage()),
                         request.getRequestURI()));
     }
 
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlerUsernameNotFoundException(UsernameNotFoundException ex, HttpServletRequest request) {
-        return ResponseEntity.badRequest()
-                .body(new ErrorResponse<>(
-                        401,
-                        "Authentication failed",
-                        Collections.singleton(ex.getMessage()),
-                        request.getRequestURI()));
-    }
-
-    @ExceptionHandler(InvalidRefreshTokenException.class)
-    public ResponseEntity<ErrorResponse> handlerInvalidRefreshToken(InvalidRefreshTokenException ex, HttpServletRequest request) {
-        return ResponseEntity.badRequest()
-                .body(new ErrorResponse<>(
-                        401,
-                        "Unauthorized",
-                        Collections.singleton(ex.getMessage()),
-                        request.getRequestURI()));
-    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleUniqueConstraintException(
@@ -83,12 +81,18 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = new HashMap<>();
 
         e.getBindingResult().getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
+            String fieldError = error.getField();
+
+            if(PaginationDto.contains(fieldError)) {
+                errors.put(PaginationDto.getFieldName(fieldError), error.getDefaultMessage());
+            } else {
+                errors.put(fieldError, error.getDefaultMessage());
+            }
         });
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(),
-                        "Validation failed for one or more fields.",
+                        ErrorStatus.UNIQUE_CONSTRAINT,
                         errors,
                         request.getRequestURI()
                 ));
@@ -105,7 +109,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(409)
                 .body(new ErrorResponse(
                         409,
-                        "Database constraint violation",
+                        ErrorStatus.SQL_CONSTRAINT,
                         messages,
                         request.getRequestURI()
                 ));
@@ -121,55 +125,65 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(405)
                 .body(new ErrorResponse(
                         405,
-                        "HTTP method not supported",
+                        ErrorStatus.METHOD_NOT_SUPPORT,
                         Arrays.asList(message),
                         request.getRequestURI()
                 ));
     }
 
-    @ExceptionHandler(AlreadyResourceException.class)
-    public ResponseEntity<ErrorResponse> handleAlreadyResourceException(
-            AlreadyResourceException ex,
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatchParams(
+            MethodArgumentTypeMismatchException e,
             HttpServletRequest request) {
-        return ResponseEntity.status(409).body(new ErrorResponse(
-                409,
-                "Resource already exists",
-                Arrays.asList(ex.getMessage()),
-                request.getRequestURI()
-        ));
+
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(),
+                        ErrorStatus.INVALID_REQUEST_PARAM,
+                        "Parameter 'page' must be an integer",
+                        request.getRequestURI()
+                ));
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials(
-            BadCredentialsException ex,
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleRequestParamViolation(
+            ConstraintViolationException e,
             HttpServletRequest request) {
-        return ResponseEntity.status(401).body(new ErrorResponse(
-                401,
-                "Bad credentials",
-                Arrays.asList("Wrong email or password"),
-                request.getRequestURI()
-        ));
-    }
 
-    @ExceptionHandler(CartItemNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleCartItemNotFound(
-            CartItemNotFoundException ex,
-            HttpServletRequest request) {
-        return ResponseEntity.status(400).body(new ErrorResponse(
-                400,
-                "Bad Request",
-                Arrays.asList(ex.getMessage()),
-                request.getRequestURI()
-        ));
+
+        Set<String> errors = e.getConstraintViolations().stream()
+                .filter(field -> {
+                    String fieldName = field.getPropertyPath().toString();
+
+                    return fieldName.equals("page") || fieldName.equals("size");
+                })
+                .map(violation -> {
+                    String paramDetail = violation.getPropertyPath().toString();
+                    String param = paramDetail.substring(paramDetail.lastIndexOf('.') + 1);
+
+                    String message = violation.getMessage();
+
+                    return String.format("Parameter '%s' %s", param, message);
+
+
+                }).collect(Collectors.toSet());
+
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(),
+                        ErrorStatus.INVALID_REQUEST_PARAM,
+                        errors,
+                        request.getRequestURI()
+                ));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials(
+    public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex,
             HttpServletRequest request) {
         return ResponseEntity.status(500).body(new ErrorResponse(
                 500,
-                "Internal server error",
+                ErrorStatus.INTERNAL_SERVER,
                 Arrays.asList("An unexpected error occurred"),
                 request.getRequestURI()
         ));

@@ -1,6 +1,7 @@
 package com.dev.e_shop.order.user;
 
 import com.dev.e_shop.dto.ApiResponse;
+import com.dev.e_shop.dto.PaginationDto;
 import com.dev.e_shop.order.dto.OrderRequest;
 import com.dev.e_shop.order.dto.OrderResponse;
 import com.dev.e_shop.user.UserDetail;
@@ -24,10 +25,9 @@ public class UserOrderController {
     @GetMapping("/")
     public ResponseEntity<ApiResponse< Map<String, Object>>> getOrderByPagination(
             @AuthenticationPrincipal UserDetail userDetail,
-            @RequestParam(defaultValue = "0", required = false) int page,
-            @RequestParam(defaultValue = "1", required = false) int size
+            @Valid PaginationDto paginationDto
     ) {
-        Map<String, Object> response = orderService.getOrderByPagination(userDetail, page, size);
+        Map<String, Object> response = orderService.getOrderByPagination(userDetail, paginationDto.getPageInt(), paginationDto.getSizeInt());
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse<>(
@@ -40,10 +40,12 @@ public class UserOrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponse< Map<String, Object>>> getOrderDetail(
             @PathVariable long orderId,
-            @RequestParam(defaultValue = "0", required = false) int page,
-            @RequestParam(defaultValue = "1", required = false) int size
+            @Valid PaginationDto paginationDto
     ) {
-        Map<String, Object> response = orderService.getOrderDetail(orderId, page, size);
+        Map<String, Object> response = orderService.getOrderDetail(
+                orderId,
+                paginationDto.getPageInt(),
+                paginationDto.getSizeInt());
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse<>(

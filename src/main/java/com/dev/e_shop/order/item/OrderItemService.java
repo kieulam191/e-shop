@@ -1,7 +1,7 @@
 package com.dev.e_shop.order.item;
 
 import com.dev.e_shop.dto.PaginationResponse;
-import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.exception.custom.NotFoundException;
 import com.dev.e_shop.order.item.mapper.OrderItemMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

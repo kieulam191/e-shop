@@ -1,6 +1,6 @@
 package com.dev.e_shop.dto;
 
-import com.dev.e_shop.exception.InvalidHttpStatusException;
+import com.dev.e_shop.exception.custom.InvalidHttpStatusException;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +29,6 @@ class ApiResponseTest {
             ApiResponse<String> success = new ApiResponse<>(invalidStatus, "success", data);
         });
 
-        assertThat(exception.getMessage()).isEqualTo("Invalid HTTP status code: " + invalidStatus);
+        assertThat(exception.getErrorDetail()).isEqualTo("Invalid HTTP status code: " + invalidStatus);
     }
 }

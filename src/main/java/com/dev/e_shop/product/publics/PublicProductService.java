@@ -1,7 +1,7 @@
 package com.dev.e_shop.product.publics;
 
 import com.dev.e_shop.dto.PaginationResponse;
-import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.exception.custom.NotFoundException;
 import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
 import com.dev.e_shop.product.dto.ProductResponse;
@@ -37,7 +37,7 @@ public class PublicProductService {
 
     public ProductResponse getProductDetailById(long id) {
         Product product = this.productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Resource not found"));
+                .orElseThrow(() -> new NotFoundException("Product with ID " + id + " not found"));
 
         return productMapper.toProductResponse(product);
     }

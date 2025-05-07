@@ -1,6 +1,6 @@
 package com.dev.e_shop.product.Publics;
 
-import com.dev.e_shop.exception.NotFoundException;
+import com.dev.e_shop.exception.custom.NotFoundException;
 import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.dto.ProductPreviewResponse;
 import com.dev.e_shop.product.dto.ProductResponse;
@@ -186,7 +186,8 @@ class PublicProductControllerTest {
     @Test
     void getProductById_withNotFoundId_throwsNotFoundException() throws Exception {
         //given
-        given(this.productService.getProductDetailById(1L)).willThrow(new NotFoundException("Product with ID 1 not found"));
+        given(this.productService.getProductDetailById(1L)).willThrow(
+                new NotFoundException("Product with ID 1 not found"));
 
         //when and then
         this.mockMvc.perform(MockMvcRequestBuilders.get("/api/public/products/1")
