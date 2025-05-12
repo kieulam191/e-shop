@@ -5,7 +5,6 @@ import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.dto.ProductPreviewResponse;
 import com.dev.e_shop.product.dto.ProductResponse;
 import com.dev.e_shop.product.publics.PublicProductService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,8 +39,6 @@ class PublicProductControllerTest {
     @MockitoBean
     PublicProductService productService;
 
-    @Autowired
-    ObjectMapper objectMapper;
 
     private Product product1, product2;
     private List<Product> products;

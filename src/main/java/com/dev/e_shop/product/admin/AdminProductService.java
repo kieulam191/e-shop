@@ -5,6 +5,8 @@ import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
 import com.dev.e_shop.product.dto.*;
 import com.dev.e_shop.product.mapper.ProductMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ public class AdminProductService {
         this.productMapper = productMapper;
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse create(CreateProductRequest body) {
         Product product = productMapper.toProduct(body);
 
@@ -29,6 +32,10 @@ public class AdminProductService {
         return productMapper.toProductResponse(savedProduct);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "product", key = "#id"),
+            @CacheEvict(value = "products", allEntries = true)
+    })
     public ProductResponse updateProduct(long id, UpdateProductRequest body) {
         return productRepository.findById(id)
                 .map(product -> {
@@ -56,6 +63,12 @@ public class AdminProductService {
                 .orElseThrow(() -> createNotFoundException(id));
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "product", key = "#id"),
+            @CacheEvict(value = "products", allEntries = true)
+    })
+
+    @CacheEvict(value = "product", key = "#id")
     public void remove(long id) {
         productRepository.findById(1L)
                 .map(product ->{

@@ -6,6 +6,8 @@ import com.dev.e_shop.user.profile.ProfileRepository;
 import com.dev.e_shop.user.profile.dto.ProfileRequest;
 import com.dev.e_shop.user.profile.dto.ProfileResponse;
 import com.dev.e_shop.user.profile.mapper.ProfileMapper;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ public class UserService {
         this.profileMapper = profileMapper;
     }
 
+    @Cacheable(value = "user", key = "#userDetail.getId()")
     public ProfileResponse getProfile(UserDetail userDetail) {
         Profile profile = profileRepository.findByUserId(userDetail.getId())
                 .orElseGet(() -> creatProfile(userDetail.getId()));
@@ -35,6 +38,7 @@ public class UserService {
     }
 
     @Transactional
+    @CachePut(value = "user", key = "#userDetail.getId()")
     public ProfileResponse updateProfile(UserDetail userDetail, ProfileRequest body) {
         Profile updatedProfile = profileRepository.findByUserId(userDetail.getId())
                 .map(userProfile -> {
