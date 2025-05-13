@@ -23,14 +23,31 @@ public class RedisConfig {
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(10))
-                .disableCachingNullValues()
                 .serializeValuesWith(RedisSerializationContext
                         .SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
 
+        //product config
+        RedisCacheConfiguration productCacheConfiguration = redisCacheConfiguration
+                .entryTtl(Duration.ofMinutes(60))
+                .disableCachingNullValues();
+
+        //cart config
+        RedisCacheConfiguration cartCacheConfiguration = redisCacheConfiguration
+                .entryTtl(Duration.ofMinutes(30))
+                .disableCachingNullValues();
+
+        //cart config
+        RedisCacheConfiguration profileCacheConfiguration = redisCacheConfiguration
+                .entryTtl(Duration.ofMinutes(60))
+                .disableCachingNullValues();
+
         return RedisCacheManager
                 .builder(redisConnectionFactory)
-                .cacheDefaults(redisCacheConfiguration)
+                .withCacheConfiguration("product", productCacheConfiguration)
+                .withCacheConfiguration("products", productCacheConfiguration)
+                .withCacheConfiguration("cart", cartCacheConfiguration)
+                .withCacheConfiguration("carts", cartCacheConfiguration)
+                .withCacheConfiguration("user", profileCacheConfiguration)
                 .build();
     }
 

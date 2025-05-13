@@ -13,8 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -56,6 +58,8 @@ public class UserCartServiceIntegrationTest {
     }
 
     @Test
+    @Transactional
+    @Rollback
     void addCartItem_whenAdded_refreshesCacheWithLatestCart() {
         // given
         String cacheKey = "cart::1";
@@ -81,6 +85,8 @@ public class UserCartServiceIntegrationTest {
     }
 
     @Test
+    @Transactional
+    @Rollback
     void updateQuantityOfItem_whenUpdated_refreshesCacheWithLatestCart() {
         //given
         String cacheKey = "cart::1";

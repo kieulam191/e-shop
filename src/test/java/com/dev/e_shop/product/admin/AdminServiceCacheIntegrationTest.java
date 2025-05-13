@@ -6,15 +6,15 @@ import com.dev.e_shop.product.dto.CreateProductRequest;
 import com.dev.e_shop.product.dto.ProductResponse;
 import com.dev.e_shop.product.dto.UpdateProductRequest;
 import com.dev.e_shop.product.mapper.ProductMapper;
-import com.dev.e_shop.product.publics.PublicProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.parameters.P;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -44,6 +44,8 @@ public class AdminServiceCacheIntegrationTest {
     }
 
     @Test
+    @Transactional
+    @Rollback
     void updateProduct_whenUpdated_removeRelatedCache() {
         //given
         String keyById = "product::1";
@@ -84,6 +86,8 @@ public class AdminServiceCacheIntegrationTest {
     }
 
     @Test
+    @Transactional
+    @Rollback
     void create_whenAdded_refreshCacheWithLastedProducts() {
         // given
         String keyByPagination = "products::0:5";
@@ -134,15 +138,39 @@ public class AdminServiceCacheIntegrationTest {
         // then
         Boolean hasKeyPagination = redisTemplate.hasKey(keyByPagination);
 
-        // Assert cache đã được xóa
         assertThat(hasKeyPagination).isFalse();
     }
 
     @Test
+    @Transactional
+    @Rollback
     void remove_whenRemoved_removeRelatedCache() {
         //given
         String keyById = "product::1";
 
+        CreateProductRequest body = new CreateProductRequest(
+                "Iphone 18",
+                new BigDecimal("300.0"),
+                "A new phone is...",
+                1,
+                "Apple",
+                "/#"
+        );
+
+        Product product = Product.builder()
+                .name(body.getName())
+                .price(body.getPrice())
+                .description(body.getDescription())
+                .brand(body.getBrand())
+                .imgUrl(body.getImgUrl())
+                .build();
+
+
+
+        given(this.productRepository.findById(1L))
+                .willReturn(Optional.of(product));
+
+        given(this.productRepository.save(product)).willReturn(new Product());
         //when
         this.adminProductService.remove(1);
 

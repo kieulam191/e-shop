@@ -67,8 +67,6 @@ public class AdminProductService {
             @CacheEvict(value = "product", key = "#id"),
             @CacheEvict(value = "products", allEntries = true)
     })
-
-    @CacheEvict(value = "product", key = "#id")
     public void remove(long id) {
         productRepository.findById(1L)
                 .map(product ->{

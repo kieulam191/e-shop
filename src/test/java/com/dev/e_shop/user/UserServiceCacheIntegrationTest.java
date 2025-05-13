@@ -10,8 +10,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -109,6 +111,8 @@ public class UserServiceCacheIntegrationTest {
 
 
     @Test
+    @Transactional
+    @Rollback
     void updateProfile_whenUpdated_refreshesCacheWithLatestProfile() {
         //given
         ProfileRequest body = new ProfileRequest("hcm", "1234567895");
@@ -134,6 +138,8 @@ public class UserServiceCacheIntegrationTest {
     }
 
     @Test
+    @Transactional
+    @Rollback
     void updateProfile_whenUserNotFound_shouldThrowAndNotTouchCache() {
         //given
         ProfileRequest body = new ProfileRequest("hcm", "1234567895");

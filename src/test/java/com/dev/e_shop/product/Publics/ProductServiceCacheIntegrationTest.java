@@ -1,5 +1,6 @@
 package com.dev.e_shop.product.Publics;
 
+import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
 import com.dev.e_shop.product.dto.ProductResponse;
 import com.dev.e_shop.product.publics.PublicProductService;
@@ -16,10 +17,12 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -111,6 +114,7 @@ public class ProductServiceCacheIntegrationTest {
         String cacheKey = "product::1";
         redisTemplate.delete(cacheKey);
 
+        given(this.productRepository.findById(1L)).willReturn(Optional.ofNullable(Product.builder().build()));
         //when
         ProductResponse response = publicProductService.getProductDetailById(1L);
 
