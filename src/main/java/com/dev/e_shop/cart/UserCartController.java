@@ -35,13 +35,13 @@ public class UserCartController {
     public ResponseEntity<ApiResponse> addCartItem(
             @AuthenticationPrincipal UserDetail userDetail,
             @Valid @RequestBody AddItemRequest body) {
-        userCartService.addCartItem(body, userDetail);
+        var cart = userCartService.addCartItem(body, userDetail);
 
         return ResponseEntity.status(201)
                 .body(new ApiResponse(
                         201,
                         "Add the item to cart success",
-                        null
+                        cart
                 ));
     }
 
@@ -49,13 +49,13 @@ public class UserCartController {
     public ResponseEntity<ApiResponse> updateCartItem(
             @AuthenticationPrincipal UserDetail userDetail,
             @Valid @RequestBody UpdateItemRequest body) {
-        userCartService.updateQuantityOfItem(body, userDetail);
+        var cart = userCartService.updateQuantityOfItem(body, userDetail);
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse(
                         200,
                         "Update the item to cart success",
-                        null
+                        cart
                 ));
     }
 
@@ -63,13 +63,13 @@ public class UserCartController {
     public ResponseEntity<ApiResponse> removeCartItem(
             @AuthenticationPrincipal UserDetail userDetail,
             @PathVariable long id) {
-        userCartService.removeCartItem(id, userDetail);
+        var cart = userCartService.removeCartItem(id, userDetail);
 
         return ResponseEntity.status(200)
                 .body(new ApiResponse(
                         200,
                         "Delete the item to cart success",
-                        null
+                        cart
                 ));
     }
 

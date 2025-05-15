@@ -6,6 +6,7 @@ import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
 import com.dev.e_shop.product.dto.ProductResponse;
 import com.dev.e_shop.product.mapper.ProductMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class PublicProductService {
         this.productMapper = productMapper;
     }
 
+    @Cacheable(value = "products",key = "#page + ':' + #size")
     public Map<String, Object> getProductsByPagination(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
 
@@ -35,6 +37,7 @@ public class PublicProductService {
         return createDataByPagination(productPage);
     }
 
+    @Cacheable(value = "product", key = "#id")
     public ProductResponse getProductDetailById(long id) {
         Product product = this.productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product with ID " + id + " not found"));
@@ -43,6 +46,7 @@ public class PublicProductService {
     }
 
 
+    @Cacheable(value = "products", key = "#page + ':' + #size + ':' + #name")
     public Map<String, Object> getProductContainByName(String name, int page, int size) {
         Page<Product> productPage = this.productRepository.findByNameContainingIgnoreCase(name, PageRequest.of(page, size));
 

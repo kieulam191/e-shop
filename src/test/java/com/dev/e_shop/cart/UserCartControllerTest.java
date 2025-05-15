@@ -52,6 +52,8 @@ class UserCartControllerTest {
 
     UserDetail userDetail;
 
+    private CartResponse cartResponse;
+
     @BeforeEach
     void setUp() {
         Profile profile = new Profile();
@@ -67,6 +69,16 @@ class UserCartControllerTest {
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetail, null,
                 userDetail.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        Set<CartDto> carts = new HashSet<>();
+        CartDto item1 = new CartDto(1,1,1);
+        CartDto item2 = new CartDto(2,1,2);
+        carts.add(item1);
+        carts.add(item2);
+
+        BigDecimal mockTotalPrice = new BigDecimal("15");
+
+        cartResponse = new CartResponse(carts, mockTotalPrice);
     }
 
     @Test
@@ -97,7 +109,8 @@ class UserCartControllerTest {
         AddItemRequest body = new AddItemRequest(1L);
         String json = objectMapper.writeValueAsString(body);
 
-        willDoNothing().given(this.userCartService).addCartItem(body, userDetail);
+        given(this.userCartService.addCartItem(body, userDetail))
+                .willReturn(cartResponse);
 
 
         this.mockMvc.perform(post("/api/user/cart/me")
@@ -106,7 +119,7 @@ class UserCartControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(201))
                 .andExpect(jsonPath("$.message").value("Add the item to cart success"))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.data.carts.size()", Matchers.equalTo(2)));
     }
 
     @Test
@@ -133,11 +146,14 @@ class UserCartControllerTest {
     @Test
     void addCartItem_withExistingCartItem_returnsCartResponse() throws Exception {
         //given
+        CartDto item1 = new CartDto(1,1,2);
+        CartResponse cartResponse = new CartResponse(Set.of(item1), BigDecimal.valueOf(15));
+
         AddItemRequest body = new AddItemRequest(1L);
         String json = objectMapper.writeValueAsString(body);
 
-        willDoNothing().given(this.userCartService)
-                .addCartItem(any(AddItemRequest.class), any(UserDetail.class));
+        given(this.userCartService.addCartItem(any(AddItemRequest.class), any(UserDetail.class)))
+                .willReturn(cartResponse);
 
 
         this.mockMvc.perform(post("/api/user/cart/me")
@@ -146,7 +162,8 @@ class UserCartControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(201))
                 .andExpect(jsonPath("$.message").value("Add the item to cart success"))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.data.carts.size()", Matchers.equalTo(1)))
+                .andExpect(jsonPath("$.data.carts[0].quantity").value(2));
     }
 
     @Test
@@ -155,8 +172,11 @@ class UserCartControllerTest {
         UpdateItemRequest body = new UpdateItemRequest(1,5);
         String json = objectMapper.writeValueAsString(body);
 
-        willDoNothing().given(this.userCartService)
-                .updateQuantityOfItem(any(UpdateItemRequest.class), any(UserDetail.class));
+        CartDto updatedItem = new CartDto(1,1,5);
+        CartResponse cartResponse = new CartResponse(Set.of(updatedItem), BigDecimal.valueOf(15));
+
+        given(this.userCartService.updateQuantityOfItem(any(UpdateItemRequest.class), any(UserDetail.class)))
+                .willReturn(cartResponse);
 
         //when and then
         this.mockMvc.perform(patch("/api/user/cart/me")
@@ -165,7 +185,8 @@ class UserCartControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.message").value("Update the item to cart success"))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.data.carts.size()", Matchers.equalTo(1)))
+                .andExpect(jsonPath("$.data.carts[0].quantity").value(5));
     }
 
     @Test
@@ -174,8 +195,9 @@ class UserCartControllerTest {
         UpdateItemRequest body = new UpdateItemRequest(1,0);
         String json = objectMapper.writeValueAsString(body);
 
-        willDoNothing().given(this.userCartService)
-                .updateQuantityOfItem(any(UpdateItemRequest.class), any(UserDetail.class));
+        given(this.userCartService
+                .updateQuantityOfItem(any(UpdateItemRequest.class), any(UserDetail.class)))
+                .willReturn(cartResponse);
 
         //when and then
         this.mockMvc.perform(patch("/api/user/cart/me")
@@ -212,15 +234,20 @@ class UserCartControllerTest {
     @Test
     void removeCartItem_withExistingCartItemId_returns200() throws Exception {
         //given
-        willDoNothing().given(this.userCartService)
-                .removeCartItem(1L, userDetail);
+        CartDto cartItem2 = new CartDto(2,2,1);
+        CartResponse cartResponse = new CartResponse(Set.of(cartItem2), BigDecimal.valueOf(15));
+
+        given(this.userCartService
+                .removeCartItem(1L, userDetail))
+                .willReturn(cartResponse);
 
         //when and then
         this.mockMvc.perform(delete("/api/user/cart/1")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.message").value("Delete the item to cart success"))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.data.carts.size()", Matchers.equalTo(1)))
+                .andExpect(jsonPath("$.data.carts[0].id").value(2));
     }
 
     @Test

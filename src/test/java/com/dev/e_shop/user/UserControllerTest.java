@@ -4,25 +4,32 @@ import com.dev.e_shop.user.profile.Profile;
 import com.dev.e_shop.user.profile.dto.ProfileRequest;
 import com.dev.e_shop.user.profile.dto.ProfileResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Objects;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -36,6 +43,9 @@ class UserControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    RedisTemplate redisTemplate;
 
     @Test
     @WithMockUser(value = "user", username = "test@gmail.com", roles = {"USER"})
@@ -68,6 +78,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithAnonymousUser
     void getUserInfo_withoutAuth_throwsUnauthorizedException() throws Exception {
         //given
         SecurityContextHolder.clearContext();
@@ -75,6 +86,7 @@ class UserControllerTest {
         //when and then
         this.mockMvc.perform(get("/api/user/me")
                         .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.message").value("Unauthorized"))
                 .andExpect(jsonPath("$.errors").value("Unauthorized access"))
