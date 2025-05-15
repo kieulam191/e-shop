@@ -1,5 +1,6 @@
 package com.dev.e_shop.product.Publics;
 
+import com.dev.e_shop.config.EmbeddedRedisConfig;
 import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
 import com.dev.e_shop.product.dto.ProductResponse;
@@ -8,9 +9,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.math.BigDecimal;
@@ -27,6 +30,8 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(EmbeddedRedisConfig.class)
+@TestPropertySource(properties = "spring.main.allow-bean-definition-overriding=true")
 public class ProductServiceCacheIntegrationTest {
 
     @Autowired

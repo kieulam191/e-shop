@@ -4,6 +4,8 @@ import com.dev.e_shop.cart.dto.AddItemRequest;
 import com.dev.e_shop.cart.dto.CartDto;
 import com.dev.e_shop.cart.dto.CartResponse;
 import com.dev.e_shop.cart.dto.UpdateItemRequest;
+//import com.dev.e_shop.config.EmbeddedRedisConfig;
+import com.dev.e_shop.config.EmbeddedRedisConfig;
 import com.dev.e_shop.product.Product;
 import com.dev.e_shop.product.ProductRepository;
 import com.dev.e_shop.user.User;
@@ -12,9 +14,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +34,8 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(EmbeddedRedisConfig.class)
+@TestPropertySource(properties = "spring.main.allow-bean-definition-overriding=true")
 public class UserCartServiceIntegrationTest {
 
     @Autowired
