@@ -14,6 +14,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.io.IOException;
@@ -50,6 +52,8 @@ class JwtAuthTokenFilterTest {
     @Test
     void doFilterInternal_withValidToken_passesRequestToFilterChain() throws ServletException, IOException {
         //given
+        SecurityContextHolder.clearContext();
+
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer valid-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
