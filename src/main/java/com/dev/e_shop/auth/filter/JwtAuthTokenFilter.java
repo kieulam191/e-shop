@@ -52,17 +52,14 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
             String email = jwtService.extractUsername(token);
             if (email != null && authentication == null) {
                 UserDetail userDetails = (UserDetail) userDetailsService.loadUserByUsername(email);
-                String username = jwtService.extractUsername(token);
-                if (username.equals(email)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
 
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (ExpiredJwtException ex) {
             request.setAttribute("jwt_exception", ex);
